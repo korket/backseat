@@ -22,9 +22,9 @@ This is an evidence-gathering milestone.
 
 Cua Driver 0.28.2 is installed and working. Tracked `opencode.json` remains Cua-disabled; no production backend wrapper exists yet.
 
-Compatibility evidence is recorded for Calculator, Notepad, and Doki Doki Literature Club Plus under `experiments/cua-driver/`. The CLI-only path was used because the `opencode` CLI is not installed on this machine; the Cua-enabled OpenCode harness path is still untested.
+Compatibility evidence is recorded for Calculator, Notepad, Doki Doki Literature Club Plus, and the OpenCode MCP harness under `experiments/cua-driver/`. The harness works in standard and bounded modes; bounded scope denies out-of-manifest tools and resources with structured errors.
 
-Open items: bounded-mode capability manifest, the OpenCode MCP harness, and the foreground-input policy decision (see `docs/decisions/0004-foreground-input-policy.md`).
+Open items: production wrapper work now proceeds under `docs/plans/active/0002-core-contracts.md` (operator instructed). `docs/decisions/0004-foreground-input-policy.md` is accepted.
 
 The DDLC Plus process was left running because no driver path could close it; the human operator closed it manually (the game ignores background close attempts and `kill_app` refuses cross-transport provenance).
 
@@ -66,18 +66,18 @@ The Cua section passed. Core readiness still fails because the `opencode` CLI is
 - [x] Run `cua-driver mcp-config --client opencode`.
 
 `mcp-config` generates the registration; the runtime command in tracked `opencode.json` is `cua-driver mcp`. Treat generated output as source of truth per `docs/runbooks/cua-agent-safety.md`.
-- [ ] Create `.backseat-local/opencode.cua.json` from the generated current registration.
+- [x] Create `.backseat-local/opencode.cua.json` from the generated current registration.
 
-Blocked on the `opencode` CLI being installed; the launcher was exercised against a temporary override for validation only.
+Created with `mcp.cua` (renamed from the generated `cua-driver` key) and bounded-mode environment variables.
 - [x] Decide whether the experiment uses bounded or supervised standard mode.
 
 Decision: supervised standard mode for the first spike. Bounded mode needs a reviewed capability manifest that does not exist yet.
-- [ ] Configure and review the Cua capability boundary.
+- [x] Configure and review the Cua capability boundary.
 
-Deferred with the bounded-mode decision.
-- [ ] Launch OpenCode through `pwsh ./scripts/opencode-cua.ps1`.
+Completed: `version: 3` manifest with observation-only tools scoped to Notepad; bounded validation passed; out-of-scope calls fail closed.
+- [x] Launch OpenCode through `pwsh ./scripts/opencode-cua.ps1`.
 
-Blocked on the `opencode` CLI.
+Verified in standard and bounded modes; the agent called `cua_list_windows` successfully. See `experiments/cua-driver/opencode-mcp-harness.md`.
 - [x] Test a simple Windows application.
 
 Calculator (WinUI) and Notepad (XAML).
@@ -90,9 +90,9 @@ Doki Doki Literature Club Plus (Unity).
 - [x] End the Cua-enabled OpenCode process when the experiment is complete.
 
 No Cua-enabled OpenCode process was ever started on this machine (CLI-only path). The driver daemon remains running by design and is guarded by `autostart`.
-- [ ] Decide whether production wrapper work should begin.
+- [x] Decide whether production wrapper work should begin.
 
-Input needed: the foreground-input policy in `docs/decisions/0004-foreground-input-policy.md`.
+Decided: yes, operator instructed. Production work proceeds under `docs/plans/active/0002-core-contracts.md`; the foreground-input policy is recorded in `docs/decisions/0004-foreground-input-policy.md`.
 
 ## Acceptance criteria
 
@@ -124,7 +124,7 @@ Any experiment code added during the spike should have a repeatable command docu
 
 ## Discoveries
 
-Evidence lives in `experiments/cua-driver/calculator.md`, `notepad.md`, and `ddlc-plus.md`; the durable summary is in `docs/research/cua-driver.md`.
+Evidence lives in `experiments/cua-driver/calculator.md`, `notepad.md`, `ddlc-plus.md`, and `opencode-mcp-harness.md`; the durable summary is in `docs/research/cua-driver.md`.
 
 Question answers:
 
@@ -145,11 +145,18 @@ Operational gaps found:
 - Foreground escalation raised the target's z-order and did not restore it.
 - `effect=unverifiable` must be treated as unknown; escalation hints can be false.
 - Recording video captures the entire display, not just the target window.
-- `doctor.ps1 -RequireCua` cannot pass while the `opencode` CLI is missing.
+
+Harness findings (see `experiments/cua-driver/opencode-mcp-harness.md`):
+
+- The OpenCode MCP harness works in standard and bounded modes; an agent called `cua_list_windows` and received data.
+- Bounded mode fails closed: `Permission denied: tool 'click' is outside the capability manifest` and `protected resource is outside the capability manifest` for wrong tools or resources.
+- Cua's MCP tool schemas use non-standard `uint32`/`uint64` formats; OpenCode logs repeated ignorable warnings.
+- `list_windows` requires `resources.desktop.display: true` in a bounded manifest.
+- The launcher captured its first positional argument as `ConfigPath`, breaking pass-through subcommands; fixed in `scripts/opencode-cua.ps1`.
 
 ## Decisions made during implementation
 
-- Used supervised standard mode instead of bounded mode for the first spike; bounded mode needs a reviewed capability manifest that does not exist yet.
+- Used supervised standard mode for the CLI spike, then verified bounded mode with a reviewed observation-only manifest.
 - Did not bypass any driver refusal (no OS-level termination of a refused process).
 - Exercised foreground escalation once, only with explicit human approval, and prepared `docs/decisions/0004-foreground-input-policy.md` for the durable policy decision.
 - Treated `unverifiable` receipts as unknown and verified every action by re-observation.

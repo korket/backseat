@@ -55,6 +55,14 @@ Verified: `start_recording` with `record_video=true` produces a valid H.264 1920
 
 Limitation: recording is owned by the transport process. One-shot CLI calls finalize the recording as soon as the `start_recording` command exits and produce no per-turn trajectory folders. Trajectory recording requires a persistent MCP client session.
 
+### MCP harness (OpenCode)
+
+Verified with OpenCode 1.18.31 through `scripts/opencode-cua.ps1`: the agent called `cua_list_windows` and received the window count. Cua's MCP tool schemas use non-standard `uint32`/`uint64` formats that OpenCode ignores with warnings.
+
+### Bounded mode
+
+A `version: 3` capability manifest was reviewed and enforced: allowed tools plus allowed applications ran silently; `click` returned `Permission denied: tool 'click' is outside the capability manifest`; wrong resources returned `protected resource is outside the capability manifest`. On Windows the application identity is the canonical absolute executable path, including inner subdirectories for packaged apps. `list_windows` requires `resources.desktop.display: true`.
+
 ### Known limitations
 
 - `kill_app` refused a broker-activated packaged-app pid from one-shot CLI calls (`foreign_process_termination_denied`); polite X-button close worked instead.
