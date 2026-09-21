@@ -41,18 +41,25 @@ Verified on Notepad and Calculator: `get_window_state` returns a structured elem
 
 Verified on Calculator 6x7=42: all clicks `delivery.mode=background` over the accessibility route; no foreground escalation. Result confirmed via re-snapshot (`Display is 42`).
 
+On a custom-rendered Unity VN (DDLC Plus) background pixel clicks reported `unverifiable` and had no effect; the driver did not return `background_unavailable`. Background input is not reliable for custom-rendered targets and must be confirmed by re-observation.
+
 ### Keyboard behavior
 
 Verified on Notepad: `type_text` via UIA ValuePattern returned `confirmed` with read-back evidence; re-snapshot matched. `press_key` Return landed but its receipt said `unverifiable` with a foreground-escalation hint (false negative on a deferred XAML provider). Lesson: re-snapshot to verify; never auto-escalate on `unverifiable`.
 
 ### Recording
 
-TBD.
+Verified: `start_recording` with `record_video=true` produces a valid H.264 1920x1080 30fps full-display mp4 via ffmpeg, plus `session.json` and `cursor.jsonl`.
+
+Limitation: recording is owned by the transport process. One-shot CLI calls finalize the recording as soon as the `start_recording` command exits and produce no per-turn trajectory folders. Trajectory recording requires a persistent MCP client session.
 
 ### Known limitations
 
 - `kill_app` refused a broker-activated packaged-app pid from one-shot CLI calls (`foreign_process_termination_denied`); polite X-button close worked instead.
+- Same provenance gap for a Steam game launched via `launch_app` from a different CLI invocation; no driver path could close it.
 - Click receipts report `effect=unverifiable`; success must be confirmed by re-snapshot.
+- On custom-rendered targets (Unity), background synthetic input can be silently dropped while receipts still report `unverifiable` (not `background_unavailable`). Re-observation is the only reliable signal.
+- Recording video captures the whole display, not just the target window.
 - Cursor-movement attribution needs an idle desktop for a strict proof.
 
 ## Implications for Backseat
