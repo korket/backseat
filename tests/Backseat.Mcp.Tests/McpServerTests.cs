@@ -151,6 +151,74 @@ public sealed class McpServerTests
     }
 
     [Fact]
+    public async Task Act_Tool_Executes_A_Batch_In_Order()
+    {
+        var script = string.Join(
+            '\n',
+            Line("initialize"),
+            CallTool("backseat_act", "{\"pid\":42,\"actions\":[{\"type\":\"wait\",\"ms\":1},{\"type\":\"token\",\"token\":\"s1:31\"}]}", 2));
+
+        var responses = await RunAsync(script, new FakeBackend());
+
+        var receipts = FirstTextNode(responses[1]).AsArray();
+        Assert.Equal(2, receipts.Count);
+        Assert.Equal("Confirmed", receipts[0]!["effect"]!.GetValue<string>());
+        Assert.Equal("Confirmed", receipts[1]!["effect"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task Failed_Steps_Inside_A_Batch_Mark_The_Result_As_Error()
+    {
+        var backend = new FakeBackend
+        {
+            ExecuteHandler = (action, _) => Task.FromResult(action is PressKeyAction
+                ? new ActionReceipt { Effect = ActionEffect.Failed, Error = "no keyboard peer" }
+                : new ActionReceipt { Effect = ActionEffect.Confirmed, Delivery = ActionDelivery.Background }),
+        };
+
+        var script = string.Join(
+            '\n',
+            Line("initialize"),
+            CallTool("backseat_act", "{\"pid\":42,\"actions\":[{\"type\":\"wait\",\"ms\":1},{\"type\":\"key\",\"key\":\"return\"}]}", 2));
+
+        var responses = await RunAsync(script, backend);
+
+        var result = responses[1]["result"]!.AsObject();
+        Assert.True(result["isError"]!.GetValue<bool>());
+
+        var receipts = JsonNode.Parse(result["content"]![0]!["text"]!.GetValue<string>())!.AsArray();
+        Assert.Equal(2, receipts.Count);
+        Assert.Equal("Confirmed", receipts[0]!["effect"]!.GetValue<string>());
+        Assert.Equal("Failed", receipts[1]!["effect"]!.GetValue<string>());
+        Assert.Equal("no keyboard peer", receipts[1]!["error"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task Oversized_Batches_Are_Refused()
+    {
+        var steps = string.Join(',', Enumerable.Range(0, McpTools.MaxBatchSize + 1).Select(_ => "{\"type\":\"wait\",\"ms\":1}"));
+        var script = string.Join('\n', Line("initialize"), CallTool("backseat_act", $"{{\"pid\":42,\"actions\":[{steps}]}}", 2));
+
+        var responses = await RunAsync(script, new FakeBackend());
+
+        var result = responses[1]["result"]!.AsObject();
+        Assert.True(result["isError"]!.GetValue<bool>());
+        Assert.Contains("at most", result["content"]![0]!["text"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task Empty_Batches_Are_Refused()
+    {
+        var script = string.Join('\n', Line("initialize"), CallTool("backseat_act", "{\"pid\":42,\"actions\":[]}", 2));
+
+        var responses = await RunAsync(script, new FakeBackend());
+
+        var result = responses[1]["result"]!.AsObject();
+        Assert.True(result["isError"]!.GetValue<bool>());
+        Assert.Contains("must not be empty", result["content"]![0]!["text"]!.GetValue<string>());
+    }
+
+    [Fact]
     public async Task Unknown_Method_Returns_Method_Not_Found()
     {
         var responses = await RunAsync(Line("does/not/exist"), new FakeBackend());

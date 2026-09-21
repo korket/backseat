@@ -6,6 +6,8 @@ namespace Backseat.Mcp;
 
 public sealed class McpTools
 {
+    public const int MaxBatchSize = 50;
+
     private readonly IComputerBackend _backend;
     private readonly Session _session;
     private readonly Func<Session, string, JsonObject, CancellationToken, Task<JsonObject>> _actHandler;
@@ -48,7 +50,7 @@ public sealed class McpTools
         new JsonObject
         {
             ["name"] = "backseat_act",
-            ["description"] = "Execute one background action against the selected target and return its receipt. Types: click, token, type, key, scroll, wait.",
+            ["description"] = "Execute one background action, or a small sequential batch, against the selected target and return the receipt(s). Types: click, token, type, key, scroll, wait.",
             ["inputSchema"] = new JsonObject
             {
                 ["type"] = "object",
@@ -65,8 +67,14 @@ public sealed class McpTools
                     ["direction"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray("up", "down", "left", "right") },
                     ["ticks"] = new JsonObject { ["type"] = "integer", ["description"] = "Scroll ticks (default 1)." },
                     ["ms"] = new JsonObject { ["type"] = "number", ["description"] = "Wait duration in milliseconds." },
+                    ["actions"] = new JsonObject
+                    {
+                        ["type"] = "array",
+                        ["description"] = $"Sequential batch of up to {MaxBatchSize} action objects, each shaped like the single-action arguments. Use one of 'type' or 'actions'.",
+                        ["items"] = new JsonObject { ["type"] = "object" },
+                    },
                 },
-                ["required"] = new JsonArray("pid", "type"),
+                ["required"] = new JsonArray("pid"),
             },
         },
     };
@@ -160,6 +168,36 @@ public sealed class McpTools
     private async Task<JsonObject> ActAsync(JsonObject arguments, CancellationToken cancellationToken)
     {
         await EnsureTargetAsync(arguments, cancellationToken);
+
+        if (arguments["actions"] is JsonArray batch)
+        {
+            if (batch.Count == 0)
+            {
+                throw new ArgumentException("The 'actions' array must not be empty.");
+            }
+
+            if (batch.Count > MaxBatchSize)
+            {
+                throw new ArgumentException($"A batch may contain at most {MaxBatchSize} actions; got {batch.Count}.");
+            }
+
+            var receipts = new JsonArray();
+            var anyFailed = false;
+
+            foreach (var item in batch)
+            {
+                var step = item as JsonObject ?? throw new ArgumentException("Each batch entry must be an object.");
+                var stepReceipt = await _actHandler(_session, RequireString(step, "type"), step, cancellationToken);
+                receipts.Add(stepReceipt);
+
+                if (stepReceipt["effect"]?.GetValue<string>() == "Failed")
+                {
+                    anyFailed = true;
+                }
+            }
+
+            return McpProtocol.TextResult(receipts.ToJsonString(), isError: anyFailed);
+        }
 
         var receipt = await _actHandler(_session, RequireString(arguments, "type"), arguments, cancellationToken);
 
