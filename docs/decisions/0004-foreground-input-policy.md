@@ -1,6 +1,6 @@
 # ADR 0004: Foreground escalation requires explicit policy, never automatic fallback
 
-Status: Proposed
+Status: Accepted
 
 ## Context
 
