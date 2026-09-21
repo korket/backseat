@@ -8,6 +8,16 @@
         "mcp"
       ],
       "enabled": false
+    },
+    "backseat": {
+      "type": "local",
+      "command": [
+        "dotnet",
+        "run",
+        "--project",
+        "src/Backseat.Mcp"
+      ],
+      "enabled": false
     }
   },
   "permission": {
