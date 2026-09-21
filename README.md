@@ -72,6 +72,8 @@ Agents drive Backseat over stdio MCP:
 
 Tools: `backseat_targets`, `backseat_observe`, and `backseat_act`. One connection is one Backseat session: the first observe or act selects the target, and `--runs DIR` persists the connection as a run. The default delivery policy is background-only; `--allow-foreground` opts into intrusive escalation with receipts.
 
+See `docs/runbooks/agent-integration.md` for registration, receipt semantics, and the recommended agent loop.
+
 ## Initial backend strategy
 
 The first compatibility work should evaluate an existing computer-use backend such as Cua Driver before Backseat implements native Windows automation.
