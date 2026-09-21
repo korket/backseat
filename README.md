@@ -64,8 +64,10 @@ Then read, in order:
 1. `AGENTS.md`
 2. `docs/product/vision.md`
 3. `docs/product/requirements.md`
-4. `ARCHITECTURE.md`
-5. `docs/plans/active/0001-cua-compatibility.md`
+4. `docs/product/terminology.md`
+5. `docs/product/non-goals.md`
+6. `ARCHITECTURE.md`
+7. `docs/plans/active/0001-cua-compatibility.md`
 
 Cua Driver is deliberately disabled in `opencode.json` until its permission boundary is configured for the compatibility experiment. Cua experiments use an ignored local override launched through `scripts/opencode-cua.ps1`, so the tracked configuration stays safe by default.
 

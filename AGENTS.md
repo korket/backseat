@@ -7,6 +7,7 @@ Backseat is a Windows-first computer-use runtime for AI agents.
 Product:
 - `docs/product/vision.md`
 - `docs/product/requirements.md`
+- `docs/product/terminology.md`
 - `docs/product/non-goals.md`
 
 Architecture:
@@ -50,6 +51,8 @@ Changes to these require explicit human approval:
 - `global.json`
 - `BOOTSTRAP-FILES.txt`
 - `scripts/*.ps1`
+
+`BOOTSTRAP-MANIFEST.txt` is an informational tree view and intentionally unprivileged; `BOOTSTRAP-FILES.txt` is the machine-read protected list.
 
 Do not work around these edit protections through shell commands, build scripts, generated code, or another tool.
 
