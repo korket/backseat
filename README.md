@@ -54,6 +54,24 @@ dotnet run --project src/Backseat.Cli -- act --pid <pid> --window <window-id> --
 
 `act` performs exactly one action, prints the receipt, and exits non-zero on failure. All input uses background delivery; the CLI never escalates to foreground.
 
+## The MCP server
+
+Agents drive Backseat over stdio MCP:
+
+```json
+{
+  "mcp": {
+    "backseat": {
+      "type": "local",
+      "command": ["dotnet", "run", "--project", "src/Backseat.Mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+Tools: `backseat_targets`, `backseat_observe`, and `backseat_act`. One connection is one Backseat session: the first observe or act selects the target, and `--runs DIR` persists the connection as a run. The default delivery policy is background-only; `--allow-foreground` opts into intrusive escalation with receipts.
+
 ## Initial backend strategy
 
 The first compatibility work should evaluate an existing computer-use backend such as Cua Driver before Backseat implements native Windows automation.

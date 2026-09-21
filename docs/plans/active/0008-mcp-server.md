@@ -24,21 +24,21 @@ The CLI host, session, adapter, and persistence are merged (plans 0002-0006 comp
 
 ## Tasks
 
-- [ ] Add the `Backseat.Mcp` project with a testable stdio JSON-RPC loop.
-- [ ] Implement `initialize`, `tools/list`, `tools/call`, `ping`, and notification handling.
-- [ ] Expose `backseat_targets`, `backseat_observe`, and `backseat_act` backed by one session per connection.
-- [ ] Support `--runs DIR` and `--allow-foreground` server options.
-- [ ] Cover the protocol and tools with in-memory tests.
+- [x] Add the `Backseat.Mcp` project with a testable stdio JSON-RPC loop.
+- [x] Implement `initialize`, `tools/list`, `tools/call`, `ping`, and notification handling.
+- [x] Expose `backseat_targets`, `backseat_observe`, and `backseat_act` backed by one session per connection.
+- [x] Support `--runs DIR` and `--allow-foreground` server options.
+- [x] Cover the protocol and tools with in-memory tests.
 
 ## Acceptance criteria
 
-- [ ] `initialize` returns the negotiated protocol version and server info.
-- [ ] `tools/list` advertises the three tools with input schemas.
-- [ ] `tools/call` dispatches to discovery, observation, and action execution, returning JSON text content.
-- [ ] Unknown methods return JSON-RPC error `-32601`; malformed JSON returns `-32700`.
-- [ ] A second target on the same connection is refused with an actionable message.
-- [ ] The server closes the session and finalizes the run when stdin ends.
-- [ ] `dotnet test` and `pwsh ./scripts/verify.ps1` pass.
+- [x] `initialize` returns the negotiated protocol version and server info.
+- [x] `tools/list` advertises the three tools with input schemas.
+- [x] `tools/call` dispatches to discovery, observation, and action execution, returning JSON text content.
+- [x] Unknown methods return JSON-RPC error `-32601`; malformed JSON returns `-32700`.
+- [x] A second target on the same connection is refused with an actionable message.
+- [x] The server closes the session and finalizes the run when stdin ends.
+- [x] `dotnet test` and `pwsh ./scripts/verify.ps1` pass.
 
 ## Verification
 
@@ -46,10 +46,14 @@ The CLI host, session, adapter, and persistence are merged (plans 0002-0006 comp
 pwsh ./scripts/verify.ps1
 ```
 
+Result: build clean, 115 tests pass.
+
 ## Discoveries
 
-Add findings here as work progresses.
+- Live smoke over stdio: initialize negotiated `2025-06-18`, `backseat_targets` returned real targets, `backseat_observe` returned the OpenCode window observation, `backseat_act` returned a wait receipt, and the run was finalized as `Closed` with one action when stdin ended.
 
 ## Decisions made during implementation
 
-Promote durable architecture changes to `docs/decisions/`.
+- One connection is one Backseat session: the first observe or act selects the target and later calls must match it, which mirrors the single-target session model.
+- No external MCP SDK; the needed protocol surface is small, so it is hand-rolled and fully unit-tested.
+- Notifications never receive responses, per JSON-RPC.

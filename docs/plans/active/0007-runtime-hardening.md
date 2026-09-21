@@ -23,20 +23,20 @@ The session, Cua adapter, run persistence, and CLI host are merged (plans 0002-0
 
 ## Tasks
 
-- [ ] Parse `degraded` and `degraded_reason` into observations.
-- [ ] Add a bounded settle policy and apply it in `Session.ObserveAsync`.
-- [ ] Add `DeliveryPolicy` with a session-level violation exception.
-- [ ] Add opt-in foreground retry to the Cua adapter for `background_unavailable`.
-- [ ] Cover settle and policy behavior with unit tests.
+- [x] Parse `degraded` and `degraded_reason` into observations.
+- [x] Add a bounded settle policy and apply it in `Session.ObserveAsync`.
+- [x] Add `DeliveryPolicy` with a session-level violation exception.
+- [x] Add opt-in foreground retry to the Cua adapter for `background_unavailable`.
+- [x] Cover settle and policy behavior with unit tests.
 
 ## Acceptance criteria
 
-- [ ] A degraded observation is retried up to the settle limit and the final attempt is logged.
-- [ ] A settled observation is returned without extra backend calls.
-- [ ] A foreground receipt under the default policy is recorded and then raises a policy violation carrying the receipt.
-- [ ] `AllowForeground` accepts a foreground receipt without complaint.
-- [ ] The adapter retries once with foreground only when enabled and only on `background_unavailable`; the escalated receipt carries a warning.
-- [ ] `dotnet test` and `pwsh ./scripts/verify.ps1` pass.
+- [x] A degraded observation is retried up to the settle limit and the final attempt is logged.
+- [x] A settled observation is returned without extra backend calls.
+- [x] A foreground receipt under the default policy is recorded and then raises a policy violation carrying the receipt.
+- [x] `AllowForeground` accepts a foreground receipt without complaint.
+- [x] The adapter retries once with foreground only when enabled and only on `background_unavailable`; the escalated receipt carries a warning.
+- [x] `dotnet test` and `pwsh ./scripts/verify.ps1` pass.
 
 ## Verification
 
@@ -44,10 +44,14 @@ The session, Cua adapter, run persistence, and CLI host are merged (plans 0002-0
 pwsh ./scripts/verify.ps1
 ```
 
+Result: build clean, 115 tests pass (60 core, 26 adapter, 16 CLI, 13 MCP).
+
 ## Discoveries
 
-Add findings here as work progresses.
+- The driver reports `degraded: true` with `degraded_reason: ax_tree_empty` on suspended packaged apps, which is the signal the settle policy keys on.
+- `background_unavailable` arrives as an error string; detection is substring-based and deliberately conservative.
 
 ## Decisions made during implementation
 
-Promote durable architecture changes to `docs/decisions/`.
+- Settle retries apply in the session, not the adapter, so any backend can opt in by setting `IsDegraded`.
+- A policy violation is loud but non-destructive: the receipt is recorded first, then raised inside the exception so the caller cannot lose it.
