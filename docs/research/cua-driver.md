@@ -23,23 +23,23 @@ Record only behavior verified from current documentation, source, or experiments
 
 ### Environment
 
-- Version:
-- Installation method:
-- Windows version:
-- Permission mode:
-- Capability manifest (if bounded):
+- Version: cua-driver 0.28.2 (x86_64-windows)
+- Installation method: `irm https://cua.ai/driver/install.ps1 | iex`
+- Windows version: Windows 11 Pro 10.0.26200 64-bit
+- Permission mode: standard (supervised test; bounded manifest not yet configured)
+- Capability manifest (if bounded): n/a
 
 ### Target discovery
 
-TBD.
+Verified: `list_windows` returns pid, window_id, bounds, z-order, and on-screen flags; `list_apps` returns running/installed catalog plus live processes.
 
 ### Observation
 
-TBD.
+Verified on Notepad and Calculator: `get_window_state` returns a structured element tree (role/label/frame/affordances), snapshot id, and window PNG. Minimized windows fail closed with explicit errors (no silent empty results).
 
 ### Click behavior
 
-TBD.
+Verified on Calculator 6x7=42: all clicks `delivery.mode=background` over the accessibility route; no foreground escalation. Result confirmed via re-snapshot (`Display is 42`).
 
 ### Keyboard behavior
 
@@ -51,8 +51,10 @@ TBD.
 
 ### Known limitations
 
-TBD.
+- `kill_app` refused a broker-activated packaged-app pid from one-shot CLI calls (`foreign_process_termination_denied`); polite X-button close worked instead.
+- Click receipts report `effect=unverifiable`; success must be confirmed by re-snapshot.
+- Cursor-movement attribution needs an idle desktop for a strict proof.
 
 ## Implications for Backseat
 
-TBD.
+Evidence so far supports the Backseat background-safe contract (explicit targets, intent vs receipt, no silent fallback). Full detail lives in `experiments/cua-driver/calculator.md`.
