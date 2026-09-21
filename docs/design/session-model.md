@@ -1,6 +1,6 @@
 # Session model
 
-Status: Draft
+Status: Draft (the Created -> TargetSelected -> Active -> Closing -> Closed subset is implemented in `Backseat.Core.Session`; recording states remain unimplemented)
 
 ## Purpose
 

@@ -24,21 +24,21 @@ Contracts and the Cua CLI adapter are merged (plans 0002 and 0003 completed). Th
 
 ## Tasks
 
-- [ ] Add `SessionState`, `ActionRecord`, and `Session` to `Backseat.Core`.
-- [ ] Enforce single-target authorization through backend discovery.
-- [ ] Record observations and receipts in order with increasing sequence numbers.
-- [ ] Implement lifetime cancellation and idempotent close.
-- [ ] Cover lifecycle, authorization, logging, and cancellation with unit tests.
+- [x] Add `SessionState`, `ActionRecord`, and `Session` to `Backseat.Core`.
+- [x] Enforce single-target authorization through backend discovery.
+- [x] Record observations and receipts in order with increasing sequence numbers.
+- [x] Implement lifetime cancellation and idempotent close.
+- [x] Cover lifecycle, authorization, logging, and cancellation with unit tests.
 
 ## Acceptance criteria
 
-- [ ] Selecting a target that the backend does not report fails without changing state.
-- [ ] A second target selection is rejected; early milestones keep one primary target.
-- [ ] Observations and receipts are appended in order and never rewritten, including failed and non-background-safe results.
-- [ ] Actions carry increasing sequence numbers starting at one.
-- [ ] The session cancels its lifetime token on close and in-flight operations observe cancellation.
-- [ ] Operations after close fail explicitly.
-- [ ] `dotnet test` and `pwsh ./scripts/verify.ps1` pass.
+- [x] Selecting a target that the backend does not report fails without changing state.
+- [x] A second target selection is rejected; early milestones keep one primary target.
+- [x] Observations and receipts are appended in order and never rewritten, including failed and non-background-safe results.
+- [x] Actions carry increasing sequence numbers starting at one.
+- [x] The session cancels its lifetime token on close and in-flight operations observe cancellation.
+- [x] Operations after close fail explicitly.
+- [x] `dotnet test` and `pwsh ./scripts/verify.ps1` pass.
 
 ## Verification
 
@@ -46,10 +46,15 @@ Contracts and the Cua CLI adapter are merged (plans 0002 and 0003 completed). Th
 pwsh ./scripts/verify.ps1
 ```
 
+Result: build clean, 51 tests pass (36 core, 15 adapter).
+
 ## Discoveries
 
-Add findings here as work progresses.
+- Backend disposal uses an optional `IAsyncDisposable` check so the contract stays minimal until a second backend needs an explicit close path.
+- The first observation or action activates the session; no separate activation call is needed for the current lifecycle.
+- `CancellationTokenSource.Dispose` in `DisposeAsync` means callers should read `CancellationToken` before disposal; `CloseAsync` alone leaves the token readable.
 
 ## Decisions made during implementation
 
-Promote durable architecture changes to `docs/decisions/`.
+- Target authorization is discovery-based: the session only accepts a target the backend itself reports, and stores the backend's descriptor as authoritative.
+- Cancelled in-flight actions are not recorded; only receipts that came back are logged.
