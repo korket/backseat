@@ -11,3 +11,5 @@ Each scenario should state:
 - actions or agent goal;
 - safety expectations;
 - observable success criteria.
+
+Safety expectations must reference `docs/runbooks/cua-agent-safety.md` and include cursor, focus, and delivery-route receipt fields.

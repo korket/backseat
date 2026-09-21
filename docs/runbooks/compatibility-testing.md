@@ -17,7 +17,7 @@ Record:
 - Windows version;
 - whether recording is enabled.
 
-Close or protect applications containing sensitive information when testing screenshot behavior.
+Close or protect applications containing sensitive information when testing observation, input, or capture against the real desktop.
 
 ## Test matrix
 
@@ -62,6 +62,10 @@ Version:
 Engine/framework if known:
 Backend:
 Backend version:
+PermissionMode:
+CapabilityBoundary:
+Target (exe/PID/window ID):
+DeliveryRoute:
 
 Observation:
 Click:

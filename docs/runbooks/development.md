@@ -28,7 +28,7 @@ Follow `docs/runbooks/commit-workflow.md` for branch and autonomous commit behav
 - Prefer the smallest vertical slice that produces evidence.
 - Update the plan when discoveries invalidate assumptions.
 - Add tests for deterministic behavior.
-- Keep real desktop interaction outside the normal unit test path.
+- Keep real desktop interaction outside the normal unit test path: real-desktop tests must be opt-in and must not click, type into, or focus arbitrary user applications. See `docs/runbooks/compatibility-testing.md`.
 
 ## Before finishing
 

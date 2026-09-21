@@ -102,6 +102,7 @@ Before doing so:
 2. understand that standard mode can reach applications across the desktop;
 3. record in the experiment notes that the backend was desktop-wide;
 4. stop the session when the test is complete.
+5. record the cursor, focus, and delivery-route receipt for every action; never log standard-mode success as background-safe evidence.
 
 Do not describe standard-mode testing as proving Backseat's final safety boundary.
 

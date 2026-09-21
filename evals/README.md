@@ -13,8 +13,12 @@ The eval framework is intentionally not implemented yet.
 - observe a selected Notepad window;
 - click a Calculator control without moving the user's cursor;
 - type into an allowed target without foreground theft;
-- advance a visual novel dialogue screen;
+- advance a visual novel dialogue screen (compatibility target only, not core-runtime behavior);
 - detect and report when a background-safe action is unavailable.
+
+## Safety
+
+Follow `docs/runbooks/cua-agent-safety.md` and `docs/runbooks/compatibility-testing.md`; success criteria must include cursor-moved, focus-changed, and delivery-route receipts.
 
 ## Rule
 
