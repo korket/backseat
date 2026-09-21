@@ -77,6 +77,7 @@ public sealed class CuaCliBackend : IComputerBackend, IRecordingBackend
             AccessibilityTree = root.TryGetProperty("tree_markdown", out var tree) && tree.ValueKind == JsonValueKind.String
                 ? tree.GetString()
                 : null,
+            Elements = ParseElements(root),
         };
     }
 
@@ -212,6 +213,65 @@ public sealed class CuaCliBackend : IComputerBackend, IRecordingBackend
             };
         }
     }
+
+    private static IReadOnlyList<ObservationElement> ParseElements(JsonElement root)
+    {
+        if (!root.TryGetProperty("elements", out var elements) || elements.ValueKind != JsonValueKind.Array)
+        {
+            return Array.Empty<ObservationElement>();
+        }
+
+        var parsed = new List<ObservationElement>();
+        foreach (var element in elements.EnumerateArray())
+        {
+            parsed.Add(new ObservationElement(
+                Role: GetString(element, "role") ?? "unknown",
+                Label: GetString(element, "label"),
+                Value: GetString(element, "value"),
+                ElementToken: GetString(element, "element_token"),
+                Frame: ParseFrame(element),
+                Actions: ParseStringArray(element, "actions"),
+                Depth: element.TryGetProperty("depth", out var depth) && depth.TryGetInt32(out var depthValue) ? depthValue : 0,
+                Enabled: !element.TryGetProperty("enabled", out var enabled) || enabled.ValueKind != JsonValueKind.False));
+        }
+
+        return parsed;
+    }
+
+    private static ObservationElementFrame? ParseFrame(JsonElement element)
+    {
+        if (!element.TryGetProperty("frame", out var frame) || frame.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        return new ObservationElementFrame(
+            X: GetDouble(frame, "x"),
+            Y: GetDouble(frame, "y"),
+            Width: GetDouble(frame, "w"),
+            Height: GetDouble(frame, "h"));
+    }
+
+    private static IReadOnlyList<string> ParseStringArray(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var array) || array.ValueKind != JsonValueKind.Array)
+        {
+            return Array.Empty<string>();
+        }
+
+        return array.EnumerateArray()
+            .Where(item => item.ValueKind == JsonValueKind.String)
+            .Select(item => item.GetString()!)
+            .ToList();
+    }
+
+    private static string? GetString(JsonElement element, string propertyName) =>
+        element.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString()
+            : null;
+
+    private static double GetDouble(JsonElement element, string propertyName) =>
+        element.TryGetProperty(propertyName, out var value) && value.TryGetDouble(out var number) ? number : 0d;
 
     private static async Task<ActionReceipt> WaitAsync(WaitAction wait, CancellationToken cancellationToken)
     {

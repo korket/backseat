@@ -281,6 +281,54 @@ public sealed class CuaCliBackendTests
     }
 
     [Fact]
+    public async Task Observation_Parses_Structured_Elements()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """
+            {"screenshot_png_b64":"AQID","tree_markdown":"- Window",
+             "elements":[
+               {"role":"Window","label":"Calculator","element_token":"s1:0","depth":1,"enabled":true,
+                "frame":{"x":10,"y":20,"w":300,"h":400},"actions":["set_value"]},
+               {"role":"Button","label":"Six","element_token":"s1:31","depth":5,"enabled":false,"actions":["invoke"]},
+               {"role":"Text","label":null,"value":"Display is 0","element_token":null,"depth":3}
+             ]}
+            """);
+        var backend = new CuaCliBackend(cli);
+
+        var observation = await backend.ObserveAsync(Target);
+
+        Assert.Equal(3, observation.Elements.Count);
+
+        var window = observation.Elements[0];
+        Assert.Equal("Window", window.Role);
+        Assert.Equal("Calculator", window.Label);
+        Assert.Equal("s1:0", window.ElementToken);
+        Assert.True(window.Enabled);
+        Assert.Equal(new ObservationElementFrame(10, 20, 300, 400), window.Frame);
+        Assert.Equal(new[] { "set_value" }, window.Actions);
+
+        var button = observation.Elements[1];
+        Assert.False(button.Enabled);
+        Assert.Null(button.Frame);
+        Assert.Equal(new[] { "invoke" }, button.Actions);
+        Assert.Equal(5, button.Depth);
+
+        Assert.Equal("Display is 0", observation.Elements[2].Value);
+        Assert.Null(observation.Elements[2].ElementToken);
+        Assert.Empty(observation.Elements[2].Actions);
+    }
+
+    [Fact]
+    public async Task Observation_Without_Elements_Returns_Empty_List()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """{"screenshot_png_b64":"AQID"}""");
+        var backend = new CuaCliBackend(cli);
+
+        var observation = await backend.ObserveAsync(Target);
+
+        Assert.Empty(observation.Elements);
+    }
+
+    [Fact]
     public void Capabilities_Advertise_What_The_Driver_Provides()
     {
         var backend = new CuaCliBackend(new FakeCuaCli());

@@ -9,4 +9,6 @@ public sealed record Observation
     public byte[]? ScreenshotPng { get; init; }
 
     public string? AccessibilityTree { get; init; }
+
+    public IReadOnlyList<ObservationElement> Elements { get; init; } = Array.Empty<ObservationElement>();
 }
