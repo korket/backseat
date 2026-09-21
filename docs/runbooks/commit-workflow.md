@@ -62,12 +62,12 @@ The build agent owns:
 The human owns:
 
 - deciding when work merges into `main`;
-- pushing to remotes;
+- approving pushes to remotes;
 - rebasing or otherwise rewriting history;
 - destructive Git operations;
 - publication or release decisions.
 
-A merge into `main` happens only when the human explicitly instructs it. The agent then performs the merge locally; publishing still requires the human.
+A merge into `main` happens only when the human explicitly instructs it. The agent then performs the merge locally; each push still requires explicit human approval.
 
 ## Privileged workflow files
 
@@ -165,6 +165,14 @@ Merge into `main` only when the human explicitly instructs it.
 - Report the merged commit range after the merge.
 - Do not delete the source branch unless the human asks.
 
+## Pushing
+
+Push only when the human approves that specific push; the tracked `opencode.json` policy prompts for every `git push`.
+
+- Push only verified, completed work the human asked to publish.
+- Never force-push.
+- Report the pushed ref and range afterward.
+
 ## During a larger task
 
 Before coding, the agent should identify the intended series.
@@ -196,9 +204,11 @@ Do not intentionally leave all commits until the end.
 
 ## Mistakes and cleanup
 
-Normal build agents are intentionally not granted autonomous rebase, reset, amend, cherry-pick, or push permissions.
+Normal build agents are intentionally not granted autonomous rebase, reset, amend, or cherry-pick permissions.
 
 Merging is permitted only on explicit human instruction; it is never an autonomous cleanup step.
+
+Pushing is approval-gated: the tracked policy prompts the human for every `git push`.
 
 If a local mistake is discovered during implementation:
 
@@ -218,5 +228,5 @@ Never rewrite shared `main` history.
 [ ] commit messages explain motivation
 [ ] no WIP/oops/debug commits remain
 [ ] commits created are reported
-[ ] nothing was pushed or merged automatically
+[ ] pushes had explicit human approval; merges had explicit human instruction
 ```

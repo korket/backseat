@@ -15,5 +15,5 @@ Use this before presenting a completed patch series.
 [ ] final commit series was inspected
 [ ] no WIP/oops/debug commits remain
 [ ] no amend/rebase/reset/merge was performed automatically
-[ ] nothing was pushed automatically
+[ ] pushes had explicit human approval; merges had explicit human instruction
 ```

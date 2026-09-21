@@ -10,7 +10,7 @@ The tracked OpenCode policy is designed to reduce accidental or routine agent mi
 
 - unknown shell commands require approval;
 - destructive Git operations and history rewriting are denied;
-- publishing is denied;
+- publishing requires explicit human approval for each push;
 - merges into `main` happen only on explicit human instruction;
 - normal autonomous commits go through guarded helper scripts;
 - privileged workflow files require approval before editing;

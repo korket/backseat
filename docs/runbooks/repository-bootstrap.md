@@ -44,7 +44,7 @@ pwsh ./scripts/doctor.ps1
 
 All product implementation work must use topic/fix branches.
 
-The coding agent may create those branches and local commits automatically. It may not push; merging into `main` happens only when the human explicitly instructs it.
+The coding agent may create those branches and local commits automatically. It may push only with explicit human approval for that push; merging into `main` happens only when the human explicitly instructs it.
 
 ## SDK selection
 

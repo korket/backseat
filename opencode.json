@@ -13,8 +13,8 @@
   "permission": {
     "bash": {
       "*": "ask",
-      "git push": "deny",
-      "git push *": "deny",
+      "git push": "ask",
+      "git push *": "ask",
       "git reset": "deny",
       "git reset *": "deny",
       "git clean": "deny",
