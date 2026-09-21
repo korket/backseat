@@ -1,6 +1,8 @@
 <Solution>
   <Project Path="src/Backseat.Core/Backseat.Core.csproj" />
   <Project Path="src/Backseat.Backends.Cua/Backseat.Backends.Cua.csproj" />
+  <Project Path="src/Backseat.Cli/Backseat.Cli.csproj" />
   <Project Path="tests/Backseat.Core.Tests/Backseat.Core.Tests.csproj" />
   <Project Path="tests/Backseat.Backends.Cua.Tests/Backseat.Backends.Cua.Tests.csproj" />
+  <Project Path="tests/Backseat.Cli.Tests/Backseat.Cli.Tests.csproj" />
 </Solution>

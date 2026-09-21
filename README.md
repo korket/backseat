@@ -29,6 +29,8 @@ The first milestone is not a full autonomous agent platform. It is to prove that
 - `docs/plans/` - active and completed execution plans.
 - `docs/research/` - durable research notes.
 - `docs/runbooks/` - repeatable development, commit, and testing procedures.
+- `src/` - production projects (`Backseat.Core`, `Backseat.Backends.Cua`, `Backseat.Cli`).
+- `tests/` - unit tests for the production projects.
 - `experiments/` - disposable technical experiments.
 - `evals/` - behavior-level scenarios and fixtures.
 - `scripts/` - canonical project commands.
@@ -39,6 +41,18 @@ The first milestone is not a full autonomous agent platform. It is to prove that
 Backseat separates agent reasoning from computer execution.
 
 An AI model may decide what action it wants to perform, but the runtime is responsible for target boundaries, action delivery, receipts, recording, cancellation, and safety constraints.
+
+## The `backseat` host
+
+The first entry point is a CLI that drives the Cua backend through Backseat's own runtime:
+
+```powershell
+dotnet run --project src/Backseat.Cli -- targets
+dotnet run --project src/Backseat.Cli -- observe --pid <pid> --window <window-id> --elements
+dotnet run --project src/Backseat.Cli -- act --pid <pid> --window <window-id> --wait 100 --runs runs
+```
+
+`act` performs exactly one action, prints the receipt, and exits non-zero on failure. All input uses background delivery; the CLI never escalates to foreground.
 
 ## Initial backend strategy
 
