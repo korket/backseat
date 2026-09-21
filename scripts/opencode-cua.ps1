@@ -1,10 +1,10 @@
 param(
+    [Parameter(Position = 0, ValueFromRemainingArguments = $true)]
+    [string[]]$OpenCodeArgs,
+
     [string]$ConfigPath = ".backseat-local/opencode.cua.json",
 
-    [switch]$AllowStandardMode,
-
-    [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]]$OpenCodeArgs
+    [switch]$AllowStandardMode
 )
 
 $ErrorActionPreference = "Stop"
