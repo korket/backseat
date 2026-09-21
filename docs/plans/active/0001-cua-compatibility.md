@@ -20,7 +20,13 @@ This is an evidence-gathering milestone.
 
 ## Current state
 
-Cua Driver 0.28.x is installed; tracked `opencode.json` remains Cua-disabled; no production backend wrapper exists yet.
+Cua Driver 0.28.2 is installed and working. Tracked `opencode.json` remains Cua-disabled; no production backend wrapper exists yet.
+
+Compatibility evidence is recorded for Calculator, Notepad, and Doki Doki Literature Club Plus under `experiments/cua-driver/`. The CLI-only path was used because the `opencode` CLI is not installed on this machine; the Cua-enabled OpenCode harness path is still untested.
+
+Open items: bounded-mode capability manifest, the OpenCode MCP harness, and the foreground-input policy decision (see `docs/decisions/0004-foreground-input-policy.md`).
+
+The DDLC Plus process was left running because no driver path could close it; the human operator closed it manually (the game ignores background close attempts and `kill_app` refuses cross-transport provenance).
 
 ## Safety setup
 
@@ -53,33 +59,53 @@ If the initial experiment uses standard mode, keep it supervised, close sensitiv
 
 ## Tasks
 
-- [ ] Run `pwsh ./scripts/doctor.ps1 -RequireCua`.
-- [ ] Install or verify Cua Driver.
-- [ ] Run `cua-driver mcp-config --client opencode`.
-- [ ] Create `.backseat-local/opencode.cua.json` from the generated current registration.
+- [x] Run `pwsh ./scripts/doctor.ps1 -RequireCua`.
+
+The Cua section passed. Core readiness still fails because the `opencode` CLI is not installed; that is an environment gap, not a Cua gap.
+- [x] Install or verify Cua Driver.
+- [x] Run `cua-driver mcp-config --client opencode`.
 
 `mcp-config` generates the registration; the runtime command in tracked `opencode.json` is `cua-driver mcp`. Treat generated output as source of truth per `docs/runbooks/cua-agent-safety.md`.
-- [ ] Decide whether the experiment uses bounded or supervised standard mode.
+- [ ] Create `.backseat-local/opencode.cua.json` from the generated current registration.
+
+Blocked on the `opencode` CLI being installed; the launcher was exercised against a temporary override for validation only.
+- [x] Decide whether the experiment uses bounded or supervised standard mode.
+
+Decision: supervised standard mode for the first spike. Bounded mode needs a reviewed capability manifest that does not exist yet.
 - [ ] Configure and review the Cua capability boundary.
+
+Deferred with the bounded-mode decision.
 - [ ] Launch OpenCode through `pwsh ./scripts/opencode-cua.ps1`.
-- [ ] Test a simple Windows application.
-- [ ] Record whether cursor movement or foreground changes occur.
-- [ ] Test one real visual novel.
-- [ ] Write experiment results under `experiments/cua-driver/`.
-- [ ] Update `docs/research/cua-driver.md` with verified findings.
-- [ ] End the Cua-enabled OpenCode process when the experiment is complete.
+
+Blocked on the `opencode` CLI.
+- [x] Test a simple Windows application.
+
+Calculator (WinUI) and Notepad (XAML).
+- [x] Record whether cursor movement or foreground changes occur.
+- [x] Test one real visual novel.
+
+Doki Doki Literature Club Plus (Unity).
+- [x] Write experiment results under `experiments/cua-driver/`.
+- [x] Update `docs/research/cua-driver.md` with verified findings.
+- [x] End the Cua-enabled OpenCode process when the experiment is complete.
+
+No Cua-enabled OpenCode process was ever started on this machine (CLI-only path). The driver daemon remains running by design and is guarded by `autostart`.
 - [ ] Decide whether production wrapper work should begin.
+
+Input needed: the foreground-input policy in `docs/decisions/0004-foreground-input-policy.md`.
 
 ## Acceptance criteria
 
-- [ ] At least one ordinary Windows application has a documented compatibility result.
-- [ ] At least one visual novel has a documented compatibility result.
-- [ ] Every tested action notes whether the physical cursor moved.
-- [ ] Every tested action notes whether foreground focus changed.
-- [ ] The Cua permission mode used during the test is recorded.
-- [ ] Failures and unsupported behavior are documented.
-- [ ] Tracked `opencode.json` remains Cua-disabled.
-- [ ] The next implementation step is based on observed behavior, not assumption.
+- [x] At least one ordinary Windows application has a documented compatibility result.
+- [x] At least one visual novel has a documented compatibility result.
+- [x] Every tested action notes whether the physical cursor moved.
+- [x] Every tested action notes whether foreground focus changed.
+- [x] The Cua permission mode used during the test is recorded.
+- [x] Failures and unsupported behavior are documented.
+- [x] Tracked `opencode.json` remains Cua-disabled.
+- [x] The next implementation step is based on observed behavior, not assumption.
+
+Cursor-movement evidence is honest but not conclusive: the desktop was in active human use, so driver-attributable movement is inferred from receipts rather than an idle-desktop measurement.
 
 This plan is intentionally stricter than `docs/product/requirements.md`: the milestone needs one ordinary application, while this spike additionally requires one visual-novel result.
 
@@ -98,8 +124,32 @@ Any experiment code added during the spike should have a repeatable command docu
 
 ## Discoveries
 
-Add findings here as work progresses.
+Evidence lives in `experiments/cua-driver/calculator.md`, `notepad.md`, and `ddlc-plus.md`; the durable summary is in `docs/research/cua-driver.md`.
+
+Question answers:
+
+1. Yes. `list_windows` and `list_apps` provide pid, window id, bounds, and state; snapshots confirm exact identity.
+2. Yes. Window screenshots returned live rendered frames while the target sat beneath four opaque full-screen windows (DDLC Plus at z=6). Caveat: virtual-desktop membership was not verified.
+3. Yes for UIA-rich targets (Calculator 6x7=42 through background accessibility clicks, no foreground swap). No for the Unity visual novel, where background clicks were dropped.
+4. XAML text input yes (`type_text` on Notepad returned `confirmed` with value read-back). Special keys are delivered but receipts are false-negative-prone: `press_key` reported `delivery_failed` while the key had actually landed.
+5. Observed delivery modes: `background`, `foreground`. Routes: `accessibility`, `synthetic_events`, `global_input`. Effects: `confirmed`, `unverifiable`.
+6. Not reliably. Failures either fail closed with explicit errors (minimized capture, documented `background_unavailable`) or return `unverifiable` while doing nothing (Unity). Receipts cannot be treated as success; re-observation is mandatory.
+7. Custom-rendered targets expose no UIA content. Capture still works; background input is dropped; foreground escalation works.
+8. Rendering continues while unfocused and covered. Interactivity while unfocused: no for this engine.
+9. `start_recording` produced a valid H.264 1920x1080 30fps full-display mp4 plus `session.json` and `cursor.jsonl`. Per-turn trajectory folders require a persistent MCP client; a one-shot CLI finalizes the recording immediately.
+10. An isolated-session backend becomes justified when a target drops background input and requires intrusive input, or when the human must keep using the machine while the agent works, or when recording must not capture the whole desktop.
+
+Operational gaps found:
+
+- `kill_app` refuses processes not provably launched by the same Cua runtime/transport. The polite UIA close worked on XAML apps but not on the Unity game, so no driver path could close it.
+- Foreground escalation raised the target's z-order and did not restore it.
+- `effect=unverifiable` must be treated as unknown; escalation hints can be false.
+- Recording video captures the entire display, not just the target window.
+- `doctor.ps1 -RequireCua` cannot pass while the `opencode` CLI is missing.
 
 ## Decisions made during implementation
 
-Promote durable architecture changes to `docs/decisions/`.
+- Used supervised standard mode instead of bounded mode for the first spike; bounded mode needs a reviewed capability manifest that does not exist yet.
+- Did not bypass any driver refusal (no OS-level termination of a refused process).
+- Exercised foreground escalation once, only with explicit human approval, and prepared `docs/decisions/0004-foreground-input-policy.md` for the durable policy decision.
+- Treated `unverifiable` receipts as unknown and verified every action by re-observation.
