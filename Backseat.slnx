@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Backseat.Core/Backseat.Core.csproj" />
+  <Project Path="tests/Backseat.Core.Tests/Backseat.Core.Tests.csproj" />
+</Solution>

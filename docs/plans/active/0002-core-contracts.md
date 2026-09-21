@@ -25,20 +25,20 @@ The repository is documentation-only. Compatibility evidence lives in `experimen
 
 ## Tasks
 
-- [ ] Add the solution and the `Backseat.Core` project.
-- [ ] Define `TargetDescriptor`, `Observation`, `ComputerAction` variants, `ActionReceipt`, and `BackendCapabilities`.
-- [ ] Define `IComputerBackend` with discovery, observation, and execution.
-- [ ] Add unit tests for the receipt and target invariants.
+- [x] Add the solution and the `Backseat.Core` project.
+- [x] Define `TargetDescriptor`, `Observation`, `ComputerAction` variants, `ActionReceipt`, and `BackendCapabilities`.
+- [x] Define `IComputerBackend` with discovery, observation, and execution.
+- [x] Add unit tests for the receipt and target invariants.
 
 ## Acceptance criteria
 
-- [ ] Contracts compile under .NET 10 with nullable reference types enabled.
-- [ ] Receipts distinguish "unknown" from "false" for foreground and cursor evidence.
-- [ ] No receipt can claim background-safe delivery without confirmed background delivery.
-- [ ] Target identity requires an explicit process id.
-- [ ] Click actions require exactly one address form (coordinates or element handle).
-- [ ] The backend interface is implementable without referencing backend-specific types.
-- [ ] `dotnet test` passes and `pwsh ./scripts/verify.ps1` runs the solution pipeline.
+- [x] Contracts compile under .NET 10 with nullable reference types enabled.
+- [x] Receipts distinguish "unknown" from "false" for foreground and cursor evidence.
+- [x] No receipt can claim background-safe delivery without confirmed background delivery.
+- [x] Target identity requires an explicit process id.
+- [x] Click actions require exactly one address form (coordinates or element handle).
+- [x] The backend interface is implementable without referencing backend-specific types.
+- [x] `dotnet test` passes and `pwsh ./scripts/verify.ps1` runs the solution pipeline.
 
 ## Verification
 
@@ -46,10 +46,13 @@ The repository is documentation-only. Compatibility evidence lives in `experimen
 pwsh ./scripts/verify.ps1
 ```
 
+Result: build clean, 20 tests pass.
+
 ## Discoveries
 
-Add findings here as work progresses.
+- `dotnet new xunit` pinned package versions that this machine's feeds do not carry; the test project now pins `Microsoft.NET.Test.Sdk` 18.0.1 and `xunit.runner.visualstudio` 3.1.5, and drops `coverlet.collector`.
+- Click addressing uses overloaded constructors rather than init-property validation, because record init accessors cannot enforce exactly-one-of at construction time.
 
 ## Decisions made during implementation
 
-Promote durable architecture changes to `docs/decisions/`.
+- `ActionReceipt.SuggestedEscalation` is advisory only and never implies success, matching the observed `escalation` hint behavior.
