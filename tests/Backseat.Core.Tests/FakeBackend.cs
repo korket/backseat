@@ -25,13 +25,21 @@ internal class FakeBackend : IComputerBackend, IAsyncDisposable
     public Task<IReadOnlyList<TargetDescriptor>> DiscoverTargetsAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<TargetDescriptor>>(Targets.ToList());
 
-    public Task<Observation> ObserveAsync(TargetDescriptor target, CancellationToken cancellationToken = default) =>
-        Task.FromResult(new Observation
+    public int ObserveCalls { get; private set; }
+
+    public Func<TargetDescriptor, CancellationToken, Task<Observation>> ObserveHandler { get; set; } =
+        (target, _) => Task.FromResult(new Observation
         {
             Target = target,
             Timestamp = DateTimeOffset.UtcNow,
             AccessibilityTree = "- Window",
         });
+
+    public Task<Observation> ObserveAsync(TargetDescriptor target, CancellationToken cancellationToken = default)
+    {
+        ObserveCalls++;
+        return ObserveHandler(target, cancellationToken);
+    }
 
     public Task<ActionReceipt> ExecuteAsync(TargetDescriptor target, ComputerAction action, CancellationToken cancellationToken = default)
     {

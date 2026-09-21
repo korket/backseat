@@ -78,6 +78,8 @@ public sealed class CuaCliBackend : IComputerBackend, IRecordingBackend
                 ? tree.GetString()
                 : null,
             Elements = ParseElements(root),
+            IsDegraded = root.TryGetProperty("degraded", out var degraded) && degraded.ValueKind == JsonValueKind.True,
+            DegradedReason = GetString(root, "degraded_reason"),
         };
     }
 

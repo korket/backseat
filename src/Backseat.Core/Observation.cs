@@ -11,4 +11,8 @@ public sealed record Observation
     public string? AccessibilityTree { get; init; }
 
     public IReadOnlyList<ObservationElement> Elements { get; init; } = Array.Empty<ObservationElement>();
+
+    public bool IsDegraded { get; init; }
+
+    public string? DegradedReason { get; init; }
 }

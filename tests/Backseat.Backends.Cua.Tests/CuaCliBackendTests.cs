@@ -329,6 +329,32 @@ public sealed class CuaCliBackendTests
     }
 
     [Fact]
+    public async Task Observation_Parses_Degraded_State()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """
+            {"degraded":true,"degraded_reason":"ax_tree_empty","elements":[],"screenshot_error":"no content"}
+            """);
+        var backend = new CuaCliBackend(cli);
+
+        var observation = await backend.ObserveAsync(Target);
+
+        Assert.True(observation.IsDegraded);
+        Assert.Equal("ax_tree_empty", observation.DegradedReason);
+    }
+
+    [Fact]
+    public async Task Observation_Is_Not_Degraded_When_The_Flag_Is_Absent()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """{"screenshot_png_b64":"AQID","elements":[]}""");
+        var backend = new CuaCliBackend(cli);
+
+        var observation = await backend.ObserveAsync(Target);
+
+        Assert.False(observation.IsDegraded);
+        Assert.Null(observation.DegradedReason);
+    }
+
+    [Fact]
     public void Capabilities_Advertise_What_The_Driver_Provides()
     {
         var backend = new CuaCliBackend(new FakeCuaCli());

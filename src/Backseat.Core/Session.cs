@@ -4,6 +4,7 @@ public sealed class Session : IAsyncDisposable
 {
     private readonly IComputerBackend _backend;
     private readonly IRunRecorder? _recorder;
+    private readonly ObservationSettlePolicy _settlePolicy;
     private readonly List<Observation> _observations = new();
     private readonly List<ActionRecord> _actions = new();
     private readonly CancellationTokenSource _lifetime = new();
@@ -11,7 +12,11 @@ public sealed class Session : IAsyncDisposable
     private TargetDescriptor? _target;
     private int _nextSequence = 1;
 
-    public Session(IComputerBackend backend, IRunRecorder? recorder = null, Guid? id = null)
+    public Session(
+        IComputerBackend backend,
+        IRunRecorder? recorder = null,
+        Guid? id = null,
+        ObservationSettlePolicy? settlePolicy = null)
     {
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         _recorder = recorder;
@@ -20,6 +25,9 @@ public sealed class Session : IAsyncDisposable
         {
             throw new ArgumentException("Session id must not be empty.", nameof(id));
         }
+
+        _settlePolicy = settlePolicy ?? ObservationSettlePolicy.Default;
+        _settlePolicy.Validate();
 
         Id = id ?? Guid.NewGuid();
         CreatedAt = DateTimeOffset.UtcNow;
@@ -135,7 +143,16 @@ public sealed class Session : IAsyncDisposable
         EnsureOpen();
         var target = RequireTarget();
 
+        var attempt = 1;
         var observation = await RunAsync(token => _backend.ObserveAsync(target, token), cancellationToken);
+
+        while (observation.IsDegraded && attempt < _settlePolicy.MaxAttempts)
+        {
+            await Task.Delay(_settlePolicy.Delay, cancellationToken);
+            attempt++;
+            observation = await RunAsync(token => _backend.ObserveAsync(target, token), cancellationToken);
+        }
+
         _observations.Add(observation);
         await ActivateAsync(cancellationToken);
         await NotifyAsync(recorder => recorder.OnObservationAsync(observation, cancellationToken));
