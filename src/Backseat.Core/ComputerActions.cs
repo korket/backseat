@@ -43,7 +43,20 @@ public sealed record PressKeyAction(string Key) : ComputerAction
         : throw new ArgumentException("Key must not be empty.", nameof(Key));
 }
 
-public sealed record ScrollAction(double DeltaX, double DeltaY) : ComputerAction;
+public enum ScrollAxis
+{
+    Vertical = 0,
+    Horizontal = 1,
+}
+
+public sealed record ScrollAction(ScrollAxis Axis, int Ticks) : ComputerAction
+{
+    public int Ticks { get; init; } = Ticks != 0
+        ? Ticks
+        : throw new ArgumentOutOfRangeException(nameof(Ticks), Ticks, "Scroll ticks must be non-zero.");
+
+    public bool IsForward => Ticks > 0;
+}
 
 public sealed record WaitAction(TimeSpan Duration) : ComputerAction
 {

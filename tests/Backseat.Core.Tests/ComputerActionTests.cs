@@ -56,6 +56,24 @@ public sealed class ComputerActionTests
     }
 
     [Fact]
+    public void ScrollAction_Rejects_Zero_Ticks()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ScrollAction(ScrollAxis.Vertical, 0));
+    }
+
+    [Fact]
+    public void ScrollAction_Preserves_Axis_And_Direction()
+    {
+        var up = new ScrollAction(ScrollAxis.Vertical, -2);
+        var right = new ScrollAction(ScrollAxis.Horizontal, 3);
+
+        Assert.False(up.IsForward);
+        Assert.Equal(2, Math.Abs(up.Ticks));
+        Assert.Equal(ScrollAxis.Horizontal, right.Axis);
+        Assert.True(right.IsForward);
+    }
+
+    [Fact]
     public void Actions_Are_Polymorphic()
     {
         ComputerAction action = new PressKeyAction("return");
