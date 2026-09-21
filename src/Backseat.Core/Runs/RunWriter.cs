@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace Backseat.Core.Runs;
@@ -9,6 +10,8 @@ public sealed class RunWriter : IRunRecorder, IAsyncDisposable
 
     private readonly string _runDirectory;
     private readonly bool _saveObservationScreenshots;
+    private readonly int _maxObservationScreenshots;
+    private readonly Queue<string> _screenshotPaths = new();
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly string _runId;
     private readonly string _backendName;
@@ -18,16 +21,24 @@ public sealed class RunWriter : IRunRecorder, IAsyncDisposable
     private StreamWriter? _eventsWriter;
     private int _observationCount;
     private int _actionCount;
+    private string? _lastScreenshotHash;
     private TargetDescriptor? _target;
     private bool _disposed;
 
-    private RunWriter(string runDirectory, string runId, string backendName, DateTimeOffset createdAt, bool saveObservationScreenshots)
+    private RunWriter(
+        string runDirectory,
+        string runId,
+        string backendName,
+        DateTimeOffset createdAt,
+        bool saveObservationScreenshots,
+        int maxObservationScreenshots)
     {
         _runDirectory = runDirectory;
         _runId = runId;
         _backendName = backendName;
         _createdAt = createdAt;
         _saveObservationScreenshots = saveObservationScreenshots;
+        _maxObservationScreenshots = maxObservationScreenshots;
     }
 
     public string RunDirectory => _runDirectory;
@@ -39,6 +50,7 @@ public sealed class RunWriter : IRunRecorder, IAsyncDisposable
         Guid runId,
         string backendName,
         bool saveObservationScreenshots = false,
+        int maxObservationScreenshots = 50,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(rootDirectory))
@@ -51,10 +63,22 @@ public sealed class RunWriter : IRunRecorder, IAsyncDisposable
             throw new ArgumentException("Backend name must not be empty.", nameof(backendName));
         }
 
+        if (maxObservationScreenshots < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxObservationScreenshots), maxObservationScreenshots, "At least one screenshot must be retained.");
+        }
+
         var directory = Path.Combine(rootDirectory, runId.ToString("D"));
         Directory.CreateDirectory(directory);
 
-        var writer = new RunWriter(directory, runId.ToString("D"), backendName, DateTimeOffset.UtcNow, saveObservationScreenshots);
+        var writer = new RunWriter(
+            directory,
+            runId.ToString("D"),
+            backendName,
+            DateTimeOffset.UtcNow,
+            saveObservationScreenshots,
+            maxObservationScreenshots);
+
         await writer.WriteMetadataAsync(finalState: null, cancellationToken);
         return writer;
     }
@@ -90,6 +114,25 @@ public sealed class RunWriter : IRunRecorder, IAsyncDisposable
         _observationCount++;
         var index = _observationCount;
 
+        var screenshotWritten = false;
+        string? screenshotSkipped = null;
+
+        if (_saveObservationScreenshots && observation.ScreenshotPng is not null)
+        {
+            var hash = Convert.ToHexString(SHA256.HashData(observation.ScreenshotPng));
+
+            if (hash == _lastScreenshotHash)
+            {
+                screenshotSkipped = "duplicate";
+            }
+            else
+            {
+                _lastScreenshotHash = hash;
+                await WriteScreenshotAsync(index, observation.ScreenshotPng, cancellationToken);
+                screenshotWritten = true;
+            }
+        }
+
         await AppendEventAsync(new
         {
             timestamp = observation.Timestamp,
@@ -97,16 +140,10 @@ public sealed class RunWriter : IRunRecorder, IAsyncDisposable
             index,
             target = DescribeTarget(observation.Target),
             hasScreenshot = observation.ScreenshotPng is not null,
+            screenshotWritten,
+            screenshotSkipped,
             treeLength = observation.AccessibilityTree?.Length ?? 0,
         }, cancellationToken);
-
-        if (_saveObservationScreenshots && observation.ScreenshotPng is not null)
-        {
-            var directory = Path.Combine(_runDirectory, "screenshots");
-            Directory.CreateDirectory(directory);
-            var path = Path.Combine(directory, $"obs-{index:D5}.png");
-            await File.WriteAllBytesAsync(path, observation.ScreenshotPng, cancellationToken);
-        }
     }
 
     public async ValueTask OnActionAsync(ActionRecord record, CancellationToken cancellationToken = default)
@@ -169,6 +206,25 @@ public sealed class RunWriter : IRunRecorder, IAsyncDisposable
         {
             _gate.Release();
             _gate.Dispose();
+        }
+    }
+
+    private async Task WriteScreenshotAsync(int index, byte[] png, CancellationToken cancellationToken)
+    {
+        var directory = Path.Combine(_runDirectory, "screenshots");
+        Directory.CreateDirectory(directory);
+
+        var path = Path.Combine(directory, $"obs-{index:D5}.png");
+        await File.WriteAllBytesAsync(path, png, cancellationToken);
+
+        _screenshotPaths.Enqueue(path);
+        while (_screenshotPaths.Count > _maxObservationScreenshots)
+        {
+            var oldest = _screenshotPaths.Dequeue();
+            if (File.Exists(oldest))
+            {
+                File.Delete(oldest);
+            }
         }
     }
 

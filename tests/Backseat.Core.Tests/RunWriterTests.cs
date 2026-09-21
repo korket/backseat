@@ -114,6 +114,58 @@ public sealed class RunWriterTests : IDisposable
     }
 
     [Fact]
+    public async Task Screenshot_Retention_Deletes_The_Oldest()
+    {
+        await using var writer = await RunWriter.CreateAsync(
+            _root,
+            Guid.NewGuid(),
+            "fake",
+            saveObservationScreenshots: true,
+            maxObservationScreenshots: 2);
+
+        for (var index = 1; index <= 3; index++)
+        {
+            await writer.OnObservationAsync(new Observation
+            {
+                Target = KnownTarget,
+                Timestamp = DateTimeOffset.UtcNow,
+                ScreenshotPng = new byte[] { (byte)index },
+            });
+        }
+
+        var directory = Path.Combine(writer.RunDirectory, "screenshots");
+        var files = Directory.GetFiles(directory).Select(Path.GetFileName).OrderBy(name => name).ToList();
+
+        Assert.Equal(new[] { "obs-00002.png", "obs-00003.png" }, files);
+    }
+
+    [Fact]
+    public async Task Consecutive_Duplicate_Screenshots_Are_Not_Written_Twice()
+    {
+        await using var writer = await RunWriter.CreateAsync(_root, Guid.NewGuid(), "fake", saveObservationScreenshots: true);
+        var screenshot = new byte[] { 9, 9, 9 };
+
+        await writer.OnObservationAsync(new Observation { Target = KnownTarget, Timestamp = DateTimeOffset.UtcNow, ScreenshotPng = screenshot });
+        await writer.OnObservationAsync(new Observation { Target = KnownTarget, Timestamp = DateTimeOffset.UtcNow, ScreenshotPng = screenshot });
+
+        Assert.Single(Directory.GetFiles(Path.Combine(writer.RunDirectory, "screenshots")));
+
+        var events = ReadLines(Path.Combine(writer.RunDirectory, "events.jsonl"))
+            .Where(e => e.GetProperty("kind").GetString() == "observation")
+            .ToList();
+
+        Assert.True(events[0].GetProperty("screenshotWritten").GetBoolean());
+        Assert.Equal("duplicate", events[1].GetProperty("screenshotSkipped").GetString());
+    }
+
+    [Fact]
+    public async Task Screenshot_Retention_Requires_A_Positive_Limit()
+    {
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => RunWriter.CreateAsync(_root, Guid.NewGuid(), "fake", saveObservationScreenshots: true, maxObservationScreenshots: 0));
+    }
+
+    [Fact]
     public async Task Failed_Receipts_Persist_Unchanged()
     {
         await using var writer = await RunWriter.CreateAsync(_root, Guid.NewGuid(), "fake");

@@ -23,19 +23,19 @@ The MCP server, session, and run persistence are merged (plans 0007 and 0008 com
 
 ## Tasks
 
-- [ ] Accept an `actions` array in `backseat_act` with a hard batch cap and per-action receipts.
-- [ ] Report batch failures without losing the successful receipts.
-- [ ] Add screenshot retention (oldest-first deletion) and consecutive-duplicate suppression to `RunWriter`.
-- [ ] Cover batching and retention with unit tests.
+- [x] Accept an `actions` array in `backseat_act` with a hard batch cap and per-action receipts.
+- [x] Report batch failures without losing the successful receipts.
+- [x] Add screenshot retention (oldest-first deletion) and consecutive-duplicate suppression to `RunWriter`.
+- [x] Cover batching and retention with unit tests.
 
 ## Acceptance criteria
 
-- [ ] A batch executes sequentially and returns one receipt per action, in order.
-- [ ] A failed receipt inside a batch marks the tool result as an error while still returning every receipt.
-- [ ] Batches larger than the cap are refused with an actionable message.
-- [ ] Retention keeps at most the configured number of observation screenshots, deleting the oldest.
-- [ ] Consecutive identical screenshots are not written twice.
-- [ ] `dotnet test` and `pwsh ./scripts/verify.ps1` pass.
+- [x] A batch executes sequentially and returns one receipt per action, in order.
+- [x] A failed receipt inside a batch marks the tool result as an error while still returning every receipt.
+- [x] Batches larger than the cap are refused with an actionable message.
+- [x] Retention keeps at most the configured number of observation screenshots, deleting the oldest.
+- [x] Consecutive identical screenshots are not written twice.
+- [x] `dotnet test` and `pwsh ./scripts/verify.ps1` pass.
 
 ## Verification
 
@@ -43,10 +43,14 @@ The MCP server, session, and run persistence are merged (plans 0007 and 0008 com
 pwsh ./scripts/verify.ps1
 ```
 
+Result: build clean, 122 tests pass (63 core, 26 adapter, 16 CLI, 17 MCP).
+
 ## Discoveries
 
-Add findings here as work progresses.
+- Batch cap is 50; each step is validated independently and a failed step still returns its receipt alongside the successful ones.
+- Duplicate suppression compares against the previous screenshot hash only; a bounded comparison window remains an option if agents toggle between two screens.
 
 ## Decisions made during implementation
 
-Promote durable architecture changes to `docs/decisions/`.
+- Batches stay strictly sequential and receipt-per-step so the observe-act-verify loop remains possible; the agent still decides between calls.
+- Retention defaults to 50 screenshots per run and is only active when screenshots are enabled.
