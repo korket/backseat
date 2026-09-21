@@ -20,6 +20,8 @@ Capabilities may include:
 - targeted text input;
 - key input;
 - scroll;
+- wait;
+- focus target;
 - recording;
 - background-safe click;
 - background-safe typing;
@@ -33,6 +35,10 @@ The backend contract should expose capabilities or return explicit unsupported r
 An action request should describe intent.
 
 The receipt should describe actual delivery.
+
+Terms `Background-safe`, `Foreground-required`, and `Intrusive input` are defined in `docs/product/terminology.md`.
+
+Coordinates in action requests are target-client relative unless the backend documents otherwise; the receipt must report any translation to screen coordinates and any fallback delivery route.
 
 Example:
 

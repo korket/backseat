@@ -8,11 +8,13 @@ These requirements describe desired behavior. They do not imply that every requi
 
 Backseat must be able to identify and target a specific desktop application and, where possible, a specific window.
 
+Early milestones prefer one primary target per session; see `docs/design/session-model.md`.
+
 ### R2: Observation
 
 Backseat must provide an agent with observations of the selected target.
 
-At minimum, the target backend should eventually support screenshots.
+The backend must support screenshots of the selected target. Screenshots are the minimum observation for the milestone.
 
 Semantic accessibility information is optional and backend-dependent.
 
@@ -27,6 +29,8 @@ Backseat must support a small set of computer actions:
 - wait.
 
 Additional actions may be added from demonstrated need.
+
+`focus target` and recording control in `ARCHITECTURE.md` are allowed extensions of this set, not core R3 requirements.
 
 ### R4: Background-safe behavior
 
@@ -87,3 +91,5 @@ The compatibility milestone is successful when we can demonstrate, against at le
 6. clean session shutdown.
 
 A visual novel should then be used as the first application compatibility experiment.
+
+`docs/plans/active/0001-cua-compatibility.md` is intentionally stricter than this milestone: that spike additionally requires one visual-novel result for its own acceptance.

@@ -140,7 +140,7 @@ Potential backends:
 
 No backend may silently convert a background-targeted action into global user input.
 
-If a backend requires foreground activation, physical cursor movement, global keyboard injection, or another intrusive fallback, Backseat must either:
+If a backend requires foreground activation, physical cursor movement, global keyboard injection, or another Intrusive input fallback (see `docs/product/terminology.md`), Backseat must either:
 
 1. reject the action under the current policy; or
 2. return an explicit receipt showing what happened.

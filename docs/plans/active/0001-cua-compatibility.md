@@ -18,6 +18,10 @@ This is an evidence-gathering milestone.
 - No custom OCR.
 - No native Win32 input implementation.
 
+## Current state
+
+Cua Driver 0.28.x is installed; tracked `opencode.json` remains Cua-disabled; no production backend wrapper exists yet.
+
 ## Safety setup
 
 Before giving Cua to an agent, read:
@@ -53,6 +57,8 @@ If the initial experiment uses standard mode, keep it supervised, close sensitiv
 - [ ] Install or verify Cua Driver.
 - [ ] Run `cua-driver mcp-config --client opencode`.
 - [ ] Create `.backseat-local/opencode.cua.json` from the generated current registration.
+
+`mcp-config` generates the registration; the runtime command in tracked `opencode.json` is `cua-driver mcp`. Treat generated output as source of truth per `docs/runbooks/cua-agent-safety.md`.
 - [ ] Decide whether the experiment uses bounded or supervised standard mode.
 - [ ] Configure and review the Cua capability boundary.
 - [ ] Launch OpenCode through `pwsh ./scripts/opencode-cua.ps1`.
@@ -74,6 +80,8 @@ If the initial experiment uses standard mode, keep it supervised, close sensitiv
 - [ ] Failures and unsupported behavior are documented.
 - [ ] Tracked `opencode.json` remains Cua-disabled.
 - [ ] The next implementation step is based on observed behavior, not assumption.
+
+This plan is intentionally stricter than `docs/product/requirements.md`: the milestone needs one ordinary application, while this spike additionally requires one visual-novel result.
 
 ## Verification
 

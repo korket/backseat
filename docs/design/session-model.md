@@ -33,11 +33,12 @@ The exact state machine is not frozen.
 A session should own:
 
 - one backend session or connection;
-- one authorized target set;
+- one authorized target set (target selection);
+- observation history;
+- action execution with sequence numbering;
 - cancellation scope;
-- optional recording lifecycle;
-- run identity;
-- action sequence numbering.
+- optional recording lifecycle and recording state;
+- run identity and run metadata.
 
 A session should not own:
 

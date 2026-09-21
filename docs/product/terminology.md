@@ -18,6 +18,8 @@ A long-lived Backseat execution context for one controlled workload.
 
 The specific application or window that the session is authorized to observe and control.
 
+Identity must be explicit (process, window, executable, and backend-specific identifiers where available); human-readable window titles alone are not sufficient. See `ARCHITECTURE.md` Target.
+
 ## Observation
 
 A timestamped representation of what the agent can perceive.

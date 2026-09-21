@@ -18,6 +18,8 @@ What exists now?
 
 What facts need experiments or research before implementation?
 
+Compatibility spikes may use `Questions` for this section and add an optional `Safety setup` section; see `docs/plans/active/0001-cua-compatibility.md`.
+
 ## Tasks
 
 - [ ] ...
