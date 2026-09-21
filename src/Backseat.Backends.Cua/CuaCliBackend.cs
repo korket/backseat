@@ -5,7 +5,7 @@ using Backseat.Core;
 
 namespace Backseat.Backends.Cua;
 
-public sealed class CuaCliBackend : IComputerBackend
+public sealed class CuaCliBackend : IComputerBackend, IRecordingBackend
 {
     private readonly ICuaCli _cli;
 
@@ -80,8 +80,7 @@ public sealed class CuaCliBackend : IComputerBackend
         };
     }
 
-    public Task<ActionReceipt> ExecuteAsync(TargetDescriptor target, ComputerAction action, CancellationToken cancellationToken = default)
-    {
+    public Task<ActionReceipt> ExecuteAsync(TargetDescriptor target, ComputerAction action, CancellationToken cancellationToken = default)    {
         return action switch
         {
             WaitAction wait => WaitAsync(wait, cancellationToken),
@@ -91,6 +90,40 @@ public sealed class CuaCliBackend : IComputerBackend
             ScrollAction scroll => ExecuteScrollAsync(target, scroll, cancellationToken),
             _ => Task.FromResult(Failed($"Unsupported action type '{action.GetType().Name}'.")),
         };
+    }
+
+    public async Task StartRecordingAsync(string outputDirectory, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(outputDirectory))
+        {
+            throw new ArgumentException("Recording output directory must not be empty.", nameof(outputDirectory));
+        }
+
+        var arguments = new JsonObject
+        {
+            ["output_dir"] = outputDirectory,
+            ["record_video"] = true,
+        };
+
+        var result = await _cli.CallAsync("start_recording", arguments.ToJsonString(), cancellationToken);
+
+        using var json = RequireJson(result, "start_recording");
+
+        if (!json.RootElement.TryGetProperty("enabled", out var enabled) || enabled.ValueKind != JsonValueKind.True)
+        {
+            throw new InvalidOperationException($"cua-driver start_recording did not enable recording: {result.StandardOutput.Trim()}");
+        }
+    }
+
+    public async Task<string?> StopRecordingAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await _cli.CallAsync("stop_recording", "{}", cancellationToken);
+
+        using var json = RequireJson(result, "stop_recording");
+
+        return json.RootElement.TryGetProperty("last_video_path", out var path) && path.ValueKind == JsonValueKind.String
+            ? path.GetString()
+            : null;
     }
 
     private async Task<ActionReceipt> ExecuteClickAsync(TargetDescriptor target, ClickAction click, CancellationToken cancellationToken)

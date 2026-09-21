@@ -2,7 +2,7 @@ using Backseat.Core;
 
 namespace Backseat.Core.Tests;
 
-internal sealed class FakeBackend : IComputerBackend, IAsyncDisposable
+internal class FakeBackend : IComputerBackend, IAsyncDisposable
 {
     public List<TargetDescriptor> Targets { get; } = new();
 
@@ -39,9 +39,65 @@ internal sealed class FakeBackend : IComputerBackend, IAsyncDisposable
         return ExecuteHandler(action, cancellationToken);
     }
 
-    public ValueTask DisposeAsync()
+    public virtual ValueTask DisposeAsync()
     {
         Disposed = true;
+        return ValueTask.CompletedTask;
+    }
+}
+
+internal sealed class RecordingFakeBackend : FakeBackend, IRecordingBackend
+{
+    public List<string> StartedRecordings { get; } = new();
+
+    public int StopCalls { get; private set; }
+
+    public Func<Task<string?>> StopHandler { get; set; } = () => Task.FromResult<string?>("recording.mp4");
+
+    public Task StartRecordingAsync(string outputDirectory, CancellationToken cancellationToken = default)
+    {
+        StartedRecordings.Add(outputDirectory);
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> StopRecordingAsync(CancellationToken cancellationToken = default)
+    {
+        StopCalls++;
+        return StopHandler();
+    }
+}
+
+internal sealed class FakeRecorder : IRunRecorder
+{
+    public List<string> Events { get; } = new();
+
+    public ValueTask OnStateChangedAsync(SessionState state, CancellationToken cancellationToken = default)
+    {
+        Events.Add($"state:{state}");
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask OnTargetSelectedAsync(TargetDescriptor target, CancellationToken cancellationToken = default)
+    {
+        Events.Add($"target:{target.ProcessId}");
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask OnObservationAsync(Observation observation, CancellationToken cancellationToken = default)
+    {
+        Events.Add("observation");
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask OnActionAsync(ActionRecord record, CancellationToken cancellationToken = default)
+    {
+        Events.Add($"action:{record.Sequence}");
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask OnRecordingChangedAsync(bool isRecording, string? artifactPath, CancellationToken cancellationToken = default)
+    {
+        Events.Add($"recording:{isRecording}:{artifactPath ?? "none"}");
         return ValueTask.CompletedTask;
     }
 }

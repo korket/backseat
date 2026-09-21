@@ -231,6 +231,56 @@ public sealed class CuaCliBackendTests
     }
 
     [Fact]
+    public async Task StartRecording_Enables_Video_In_The_Given_Directory()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """
+            {"enabled":true,"output_dir":"C:\\runs\\x","video_active":true}
+            """);
+        var backend = new CuaCliBackend(cli);
+
+        await backend.StartRecordingAsync(@"C:\runs\x");
+
+        Assert.Equal("start_recording", cli.Calls[0].Tool);
+        var arguments = cli.ParseArguments(0);
+        Assert.Equal(@"C:\runs\x", arguments.GetProperty("output_dir").GetString());
+        Assert.True(arguments.GetProperty("record_video").GetBoolean());
+    }
+
+    [Fact]
+    public async Task StartRecording_Fails_Loudly_When_Not_Enabled()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """{"enabled":false}""");
+        var backend = new CuaCliBackend(cli);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => backend.StartRecordingAsync(@"C:\runs\x"));
+
+        Assert.Contains("did not enable recording", exception.Message);
+    }
+
+    [Fact]
+    public async Task StopRecording_Returns_The_Finalized_Path()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """
+            {"enabled":false,"last_video_path":"C:\\runs\\x\\recording.mp4"}
+            """);
+        var backend = new CuaCliBackend(cli);
+
+        var path = await backend.StopRecordingAsync();
+
+        Assert.Equal("stop_recording", cli.Calls[0].Tool);
+        Assert.Equal(@"C:\runs\x\recording.mp4", path);
+    }
+
+    [Fact]
+    public async Task StopRecording_Returns_Null_When_No_Video_Exists()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """{"enabled":false,"last_video_path":null}""");
+        var backend = new CuaCliBackend(cli);
+
+        Assert.Null(await backend.StopRecordingAsync());
+    }
+
+    [Fact]
     public void Capabilities_Advertise_What_The_Driver_Provides()
     {
         var backend = new CuaCliBackend(new FakeCuaCli());
