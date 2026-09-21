@@ -1,0 +1,76 @@
+.editorconfig
+.gitignore
+.opencode/
+  README.md
+  agents/
+    .gitkeep
+  commands/
+    .gitkeep
+AGENTS.md
+ARCHITECTURE.md
+BOOTSTRAP-FILES.txt
+README.md
+docs/
+  decisions/
+    0000-template.md
+    0001-windows-first.md
+    0002-cua-driver-first.md
+    0003-dotnet-10.md
+    README.md
+  design/
+    computer-backends.md
+    index.md
+    recording.md
+    session-model.md
+  plans/
+    0000-template.md
+    README.md
+    active/
+      0001-cua-compatibility.md
+    completed/
+      .gitkeep
+  product/
+    non-goals.md
+    requirements.md
+    terminology.md
+    vision.md
+  research/
+    README.md
+    cua-driver.md
+    trope-cua.md
+    windows-input.md
+  runbooks/
+    commit-checklist.md
+    commit-workflow.md
+    compatibility-testing.md
+    cua-agent-safety.md
+    development.md
+    repository-bootstrap.md
+    toolchain.md
+    trust-boundary.md
+evals/
+  README.md
+  fixtures/
+    .gitkeep
+  scenarios/
+    README.md
+experiments/
+  README.md
+  cua-driver/
+    README.md
+  windows-capture/
+    README.md
+  windows-input/
+    README.md
+global.json
+opencode.json
+runs/
+  .gitkeep
+scripts/
+  bootstrap.ps1
+  clean.ps1
+  commit.ps1
+  doctor.ps1
+  opencode-cua.ps1
+  stage.ps1
+  verify.ps1

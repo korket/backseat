@@ -1,0 +1,74 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "cua": {
+      "type": "local",
+      "command": [
+        "cua-driver",
+        "mcp"
+      ],
+      "enabled": false
+    }
+  },
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "git push": "deny",
+      "git push *": "deny",
+      "git reset": "deny",
+      "git reset *": "deny",
+      "git clean": "deny",
+      "git clean *": "deny",
+      "git rebase": "deny",
+      "git rebase *": "deny",
+      "git merge": "deny",
+      "git merge *": "deny",
+      "git cherry-pick": "deny",
+      "git cherry-pick *": "deny",
+      "git commit": "deny",
+      "git commit *": "deny",
+      "git add": "deny",
+      "git add *": "deny",
+      "git switch": "deny",
+      "git switch *": "deny",
+      "git status": "allow",
+      "git status *": "allow",
+      "git diff": "allow",
+      "git diff *": "allow",
+      "git log": "allow",
+      "git log *": "allow",
+      "git show": "allow",
+      "git show *": "allow",
+      "git rev-parse": "allow",
+      "git rev-parse *": "allow",
+      "git branch --show-current": "allow",
+      "git restore --staged -- *": "allow",
+      "git switch -c *": "allow",
+      "git switch -c *--discard-changes*": "deny",
+      "git switch -c *--force*": "deny",
+      "pwsh ./scripts/stage.ps1 *": "allow",
+      "pwsh -File ./scripts/stage.ps1 *": "allow",
+      "pwsh ./scripts/commit.ps1 *": "allow",
+      "pwsh -File ./scripts/commit.ps1 *": "allow",
+      "pwsh ./scripts/doctor.ps1": "allow",
+      "pwsh ./scripts/doctor.ps1 *": "allow",
+      "pwsh -File ./scripts/doctor.ps1": "allow",
+      "pwsh -File ./scripts/doctor.ps1 *": "allow",
+      "pwsh ./scripts/verify.ps1": "allow",
+      "pwsh -File ./scripts/verify.ps1": "allow",
+      "dotnet restore *": "allow",
+      "dotnet build *": "allow",
+      "dotnet test *": "allow",
+      "cua-driver mcp-config --client opencode": "allow"
+    },
+    "edit": {
+      "*": "allow",
+      "AGENTS.md": "ask",
+      "opencode.json": "ask",
+      ".gitignore": "ask",
+      "global.json": "ask",
+      "BOOTSTRAP-FILES.txt": "ask",
+      "scripts/*.ps1": "ask"
+    }
+  }
+}

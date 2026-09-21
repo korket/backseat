@@ -1,0 +1,39 @@
+# Build output
+bin/
+obj/
+artifacts/
+TestResults/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Runtime artifacts
+runs/*
+!runs/.gitkeep
+
+# Experiment output
+experiments/**/out/
+experiments/**/tmp/
+
+# Logs
+*.log
+
+# OpenCode local/session data if created
+.opencode/cache/
+.opencode/tmp/
+
+# Local Backseat/OpenCode runtime overrides
+.backseat-local/
