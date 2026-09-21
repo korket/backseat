@@ -14,7 +14,8 @@ The tracked OpenCode policy is designed to reduce accidental or routine agent mi
 - merges into `main` happen only on explicit human instruction;
 - normal autonomous commits go through guarded helper scripts;
 - privileged workflow files require approval before editing;
-- Cua is disabled in the tracked configuration.
+- Cua is disabled in the tracked configuration;
+- the Backseat MCP server is enabled, with `backseat_act` (input delivery) behind approval while discovery and observation are allowed.
 
 These controls make ordinary agent behavior predictable and auditable.
 

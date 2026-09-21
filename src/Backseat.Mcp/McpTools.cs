@@ -23,7 +23,7 @@ public sealed class McpTools
     {
         new JsonObject
         {
-            ["name"] = "backseat_targets",
+            ["name"] = "targets",
             ["description"] = "List desktop targets reported by the Backseat backend (process id, window id, title).",
             ["inputSchema"] = new JsonObject
             {
@@ -33,7 +33,7 @@ public sealed class McpTools
         },
         new JsonObject
         {
-            ["name"] = "backseat_observe",
+            ["name"] = "observe",
             ["description"] = "Observe the selected target and return its structured elements, accessibility tree, and optionally a screenshot.",
             ["inputSchema"] = new JsonObject
             {
@@ -49,7 +49,7 @@ public sealed class McpTools
         },
         new JsonObject
         {
-            ["name"] = "backseat_act",
+            ["name"] = "act",
             ["description"] = "Execute one background action, or a small sequential batch, against the selected target and return the receipt(s). Types: click, token, type, key, scroll, wait.",
             ["inputSchema"] = new JsonObject
             {
@@ -85,9 +85,9 @@ public sealed class McpTools
         {
             return name switch
             {
-                "backseat_targets" => await TargetsAsync(cancellationToken),
-                "backseat_observe" => await ObserveAsync(arguments ?? new JsonObject(), cancellationToken),
-                "backseat_act" => await ActAsync(arguments ?? new JsonObject(), cancellationToken),
+                "targets" => await TargetsAsync(cancellationToken),
+                "observe" => await ObserveAsync(arguments ?? new JsonObject(), cancellationToken),
+                "act" => await ActAsync(arguments ?? new JsonObject(), cancellationToken),
                 _ => McpProtocol.TextResult($"Unknown tool '{name}'.", isError: true),
             };
         }

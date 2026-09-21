@@ -68,16 +68,16 @@ public sealed class McpServerTests
         var names = tools.Select(tool => tool!["name"]!.GetValue<string>()).ToList();
 
         Assert.Equal(3, tools.Count);
-        Assert.Contains("backseat_targets", names);
-        Assert.Contains("backseat_observe", names);
-        Assert.Contains("backseat_act", names);
+        Assert.Contains("targets", names);
+        Assert.Contains("observe", names);
+        Assert.Contains("act", names);
         Assert.NotNull(tools[0]!["inputSchema"]);
     }
 
     [Fact]
     public async Task Targets_Tool_Returns_Discovered_Targets()
     {
-        var script = string.Join('\n', Line("initialize"), CallTool("backseat_targets", "{}", 2));
+        var script = string.Join('\n', Line("initialize"), CallTool("targets", "{}", 2));
         var responses = await RunAsync(script, new FakeBackend());
 
         var payload = FirstTextNode(responses[1]).AsArray();
@@ -88,7 +88,7 @@ public sealed class McpServerTests
     [Fact]
     public async Task Observe_Tool_Returns_Elements_And_Tree()
     {
-        var script = string.Join('\n', Line("initialize"), CallTool("backseat_observe", "{\"pid\":42}", 2));
+        var script = string.Join('\n', Line("initialize"), CallTool("observe", "{\"pid\":42}", 2));
         var responses = await RunAsync(script, new FakeBackend());
 
         var payload = FirstText(responses[1]);
@@ -101,7 +101,7 @@ public sealed class McpServerTests
     [Fact]
     public async Task Act_Tool_Returns_A_Receipt()
     {
-        var script = string.Join('\n', Line("initialize"), CallTool("backseat_act", "{\"pid\":42,\"type\":\"token\",\"token\":\"s1:31\"}", 2));
+        var script = string.Join('\n', Line("initialize"), CallTool("act", "{\"pid\":42,\"type\":\"token\",\"token\":\"s1:31\"}", 2));
         var responses = await RunAsync(script, new FakeBackend());
 
         var receipt = FirstText(responses[1]);
@@ -119,8 +119,8 @@ public sealed class McpServerTests
         var script = string.Join(
             '\n',
             Line("initialize"),
-            CallTool("backseat_act", "{\"pid\":42,\"type\":\"wait\",\"ms\":1}", 2),
-            CallTool("backseat_act", "{\"pid\":7,\"type\":\"wait\",\"ms\":1}", 3));
+            CallTool("act", "{\"pid\":42,\"type\":\"wait\",\"ms\":1}", 2),
+            CallTool("act", "{\"pid\":7,\"type\":\"wait\",\"ms\":1}", 3));
 
         var responses = await RunAsync(script, backend);
 
@@ -142,7 +142,7 @@ public sealed class McpServerTests
             }),
         };
 
-        var script = string.Join('\n', Line("initialize"), CallTool("backseat_act", "{\"pid\":42,\"type\":\"wait\",\"ms\":1}", 2));
+        var script = string.Join('\n', Line("initialize"), CallTool("act", "{\"pid\":42,\"type\":\"wait\",\"ms\":1}", 2));
         var responses = await RunAsync(script, backend);
 
         var result = responses[1]["result"]!.AsObject();
@@ -156,7 +156,7 @@ public sealed class McpServerTests
         var script = string.Join(
             '\n',
             Line("initialize"),
-            CallTool("backseat_act", "{\"pid\":42,\"actions\":[{\"type\":\"wait\",\"ms\":1},{\"type\":\"token\",\"token\":\"s1:31\"}]}", 2));
+            CallTool("act", "{\"pid\":42,\"actions\":[{\"type\":\"wait\",\"ms\":1},{\"type\":\"token\",\"token\":\"s1:31\"}]}", 2));
 
         var responses = await RunAsync(script, new FakeBackend());
 
@@ -179,7 +179,7 @@ public sealed class McpServerTests
         var script = string.Join(
             '\n',
             Line("initialize"),
-            CallTool("backseat_act", "{\"pid\":42,\"actions\":[{\"type\":\"wait\",\"ms\":1},{\"type\":\"key\",\"key\":\"return\"}]}", 2));
+            CallTool("act", "{\"pid\":42,\"actions\":[{\"type\":\"wait\",\"ms\":1},{\"type\":\"key\",\"key\":\"return\"}]}", 2));
 
         var responses = await RunAsync(script, backend);
 
@@ -197,7 +197,7 @@ public sealed class McpServerTests
     public async Task Oversized_Batches_Are_Refused()
     {
         var steps = string.Join(',', Enumerable.Range(0, McpTools.MaxBatchSize + 1).Select(_ => "{\"type\":\"wait\",\"ms\":1}"));
-        var script = string.Join('\n', Line("initialize"), CallTool("backseat_act", $"{{\"pid\":42,\"actions\":[{steps}]}}", 2));
+        var script = string.Join('\n', Line("initialize"), CallTool("act", $"{{\"pid\":42,\"actions\":[{steps}]}}", 2));
 
         var responses = await RunAsync(script, new FakeBackend());
 
@@ -209,7 +209,7 @@ public sealed class McpServerTests
     [Fact]
     public async Task Empty_Batches_Are_Refused()
     {
-        var script = string.Join('\n', Line("initialize"), CallTool("backseat_act", "{\"pid\":42,\"actions\":[]}", 2));
+        var script = string.Join('\n', Line("initialize"), CallTool("act", "{\"pid\":42,\"actions\":[]}", 2));
 
         var responses = await RunAsync(script, new FakeBackend());
 
@@ -237,7 +237,7 @@ public sealed class McpServerTests
     [Fact]
     public async Task Tools_Before_Initialize_Are_Rejected()
     {
-        var responses = await RunAsync(CallTool("backseat_targets", "{}", 1), new FakeBackend());
+        var responses = await RunAsync(CallTool("targets", "{}", 1), new FakeBackend());
 
         Assert.Equal(-32002, responses[0]["error"]!["code"]!.GetValue<int>());
     }
@@ -248,7 +248,7 @@ public sealed class McpServerTests
         var root = Path.Combine(Path.GetTempPath(), "backseat-mcp-tests", Guid.NewGuid().ToString("N"));
         try
         {
-            var script = string.Join('\n', Line("initialize"), CallTool("backseat_act", "{\"pid\":42,\"type\":\"wait\",\"ms\":1}", 2));
+            var script = string.Join('\n', Line("initialize"), CallTool("act", "{\"pid\":42,\"type\":\"wait\",\"ms\":1}", 2));
 
             await RunAsync(script, new FakeBackend(), root);
 

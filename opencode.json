@@ -17,7 +17,7 @@
         "--project",
         "src/Backseat.Mcp"
       ],
-      "enabled": false
+      "enabled": true
     }
   },
   "permission": {
@@ -87,6 +87,9 @@
       "global.json": "ask",
       "BOOTSTRAP-FILES.txt": "ask",
       "scripts/*.ps1": "ask"
-    }
+    },
+    "backseat_targets": "allow",
+    "backseat_observe": "allow",
+    "backseat_act": "ask"
   }
 }

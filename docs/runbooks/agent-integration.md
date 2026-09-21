@@ -14,7 +14,7 @@ Read `docs/runbooks/cua-agent-safety.md` and `docs/decisions/0004-foreground-inp
 
 ## MCP registration
 
-The tracked `opencode.json` contains a disabled `backseat` server entry:
+The tracked `opencode.json` enables the `backseat` server:
 
 ```json
 {
@@ -22,15 +22,15 @@ The tracked `opencode.json` contains a disabled `backseat` server entry:
     "backseat": {
       "type": "local",
       "command": ["dotnet", "run", "--project", "src/Backseat.Mcp"],
-      "enabled": false
+      "enabled": true
     }
   }
 }
 ```
 
-It ships disabled, like the Cua placeholder. Enable it deliberately when the workflow is ready: flip `enabled` to `true` in `opencode.json` (a privileged workflow file, so the change should be reviewed) and restart the client. `dotnet build Backseat.slnx` first, or add `--no-build` to the command to skip the build check on each connection.
+The same file gates the tools: `backseat_targets` and `backseat_observe` are allowed, and `backseat_act` prompts for approval because it delivers input. Adjust those permission entries deliberately if the workflow needs something different. `dotnet build Backseat.slnx` first, or add `--no-build` to the command to skip the build check on each connection.
 
-For Claude Code and other MCP clients, register the same command with `--runs runs` to persist sessions.
+For Claude Code and other MCP clients, register the same command with `--runs runs` to persist sessions. Client-side tool names are namespaced by the server name (`backseat_targets`, `mcp__backseat__targets`, and so on) while the server itself exposes `targets`, `observe`, and `act`.
 
 ## Server options
 
@@ -43,9 +43,9 @@ backseat-mcp [--runs DIR] [--allow-foreground]
 
 ## Tools
 
-- `backseat_targets` - list discoverable targets (`processId`, `windowId`, `title`).
-- `backseat_observe` - observe the selected target: structured elements with tokens, accessibility tree, optional PNG screenshot.
-- `backseat_act` - execute one background action (`click`, `token`, `type`, `key`, `scroll`, `wait`) and return its receipt.
+- `targets` - list discoverable targets (`processId`, `windowId`, `title`).
+- `observe` - observe the selected target: structured elements with tokens, accessibility tree, optional PNG screenshot.
+- `act` - execute one background action (`click`, `token`, `type`, `key`, `scroll`, `wait`) or a sequential `actions` batch (up to 50), returning the receipt(s).
 
 One connection is one Backseat session: the first `observe` or `act` selects the target, and later calls must use the same target. Start a new connection to switch.
 
@@ -58,10 +58,10 @@ One connection is one Backseat session: the first `observe` or `act` selects the
 
 ## Recommended agent loop
 
-1. `backseat_targets` and pick the exact target.
-2. `backseat_observe` and address elements by `token` when available; pixel clicks are for custom-rendered surfaces.
-3. `backseat_act` once per step.
-4. `backseat_observe` again and verify the expected change before the next step.
+1. `targets` and pick the exact target.
+2. `observe` and address elements by `token` when available; pixel clicks are for custom-rendered surfaces.
+3. `act` once per step.
+4. `observe` again and verify the expected change before the next step.
 5. On `Unverifiable` or degraded observations, re-observe (the session settles automatically) rather than escalating.
 
 ## Safety reminders

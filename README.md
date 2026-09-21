@@ -70,7 +70,7 @@ Agents drive Backseat over stdio MCP:
 }
 ```
 
-Tools: `backseat_targets`, `backseat_observe`, and `backseat_act`. One connection is one Backseat session: the first observe or act selects the target, and `--runs DIR` persists the connection as a run. The default delivery policy is background-only; `--allow-foreground` opts into intrusive escalation with receipts.
+Tools: `targets`, `observe`, and `act` (namespaced by the client as `backseat_targets` and so on). One connection is one Backseat session: the first observe or act selects the target, and `--runs DIR` persists the connection as a run. The default delivery policy is background-only; `--allow-foreground` opts into intrusive escalation with receipts. The tracked `opencode.json` enables the server and prompts for approval on `backseat_act`.
 
 See `docs/runbooks/agent-integration.md` for registration, receipt semantics, and the recommended agent loop.
 
