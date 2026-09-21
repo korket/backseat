@@ -8,6 +8,8 @@ Backseat's bootstrap currently assumes the following local development toolchain
 
 Used for the patch-oriented autonomous commit workflow.
 
+Git 2.28 or later is required for `git init -b main` in `scripts/bootstrap.ps1`.
+
 The agent may create local topic branches and local commits through Backseat's guarded scripts. Publishing and history rewriting remain human-controlled.
 
 ### PowerShell 7 (`pwsh`)

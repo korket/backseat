@@ -16,6 +16,10 @@ try {
     }
 
     $required = @(
+        ".editorconfig",
+        ".gitignore",
+        "BOOTSTRAP-MANIFEST.txt",
+        ".opencode/README.md",
         "AGENTS.md",
         "ARCHITECTURE.md",
         "README.md",
@@ -25,14 +29,21 @@ try {
         "docs/product/vision.md",
         "docs/product/requirements.md",
         "docs/product/non-goals.md",
+        "docs/research/README.md",
+        "docs/runbooks/commit-checklist.md",
         "docs/runbooks/commit-workflow.md",
+        "docs/runbooks/compatibility-testing.md",
         "docs/runbooks/repository-bootstrap.md",
         "docs/runbooks/cua-agent-safety.md",
+        "docs/runbooks/development.md",
         "docs/runbooks/toolchain.md",
         "docs/runbooks/trust-boundary.md",
         "docs/plans/active/0001-cua-compatibility.md",
+        "scripts/bootstrap.ps1",
+        "scripts/clean.ps1",
         "scripts/stage.ps1",
         "scripts/commit.ps1",
+        "scripts/doctor.ps1",
         "scripts/opencode-cua.ps1"
     )
 

@@ -47,7 +47,7 @@ try {
     )
 
     foreach ($state in $blockedStates) {
-        if (Test-Path $state) {
+        if (Test-Path -LiteralPath $state) {
             throw "Repository is in a merge/rebase/cherry-pick/revert state. Autonomous commit is blocked."
         }
     }
@@ -83,6 +83,9 @@ try {
 
     foreach ($path in $staged) {
         $normalized = $path.Replace('\', '/')
+        if ($normalized -match '(^|/)\.env\.example$') {
+            continue
+        }
         foreach ($pattern in $forbiddenPatterns) {
             if ($normalized -match $pattern) {
                 throw "Generated, runtime, or local-secret artifact cannot be auto-committed: '$path'."
@@ -107,12 +110,12 @@ try {
     Write-Host ""
     Invoke-Git diff --staged --stat
 
-    $args = @("commit", "-m", $subjectTrimmed)
+    $commitArgs = @("commit", "-m", $subjectTrimmed)
     if (-not [string]::IsNullOrWhiteSpace($Body)) {
-        $args += @("-m", $Body.Trim())
+        $commitArgs += @("-m", $Body.Trim())
     }
 
-    & git @args
+    & git @commitArgs
     if ($LASTEXITCODE -ne 0) {
         throw "git commit failed with exit code $LASTEXITCODE."
     }

@@ -65,7 +65,7 @@ try {
     if ($dotnetPresent) {
         try {
             $sdkLines = @(& dotnet --list-sdks 2>&1)
-            $dotnet10 = @($sdkLines | Where-Object { $_ -match '^10\.\d+\.\d+' })
+            $dotnet10 = @($sdkLines | Where-Object { $_ -match ('^' + $RequiredDotNetMajor + '\.\d+\.\d+') })
 
             if ($dotnet10.Count -eq 0) {
                 Write-Host "[FAIL]    No installed .NET 10 SDK was found."
@@ -86,7 +86,7 @@ try {
             }
             else {
                 Write-Host "[OK]      Repository-selected SDK: $selectedVersion"
-                if ($selectedVersion -notmatch '^10\.') {
+                if ($selectedVersion -notmatch ('^' + $RequiredDotNetMajor + '\.')) {
                     Write-Host "[FAIL]    global.json did not select .NET 10."
                     $coreGood = $false
                 }
@@ -179,6 +179,22 @@ try {
         }
 
         Write-Host ""
+        Write-Host "Tracked OpenCode configuration:"
+        try {
+            $trackedConfig = Get-Content -LiteralPath (Join-Path $RepoRoot "opencode.json") -Raw | ConvertFrom-Json
+            if ($trackedConfig.mcp.cua.enabled -ne $false) {
+                Write-Host "[WARN]    Tracked opencode.json does not keep mcp.cua disabled."
+                $cuaGood = $false
+            }
+            else {
+                Write-Host "[OK]      Tracked opencode.json keeps Cua disabled."
+            }
+        }
+        catch {
+            Write-Host "[WARN]    Could not parse tracked opencode.json: $($_.Exception.Message)"
+        }
+
+        Write-Host ""
         Write-Host "Persistent daemon (optional for bare MCP on Windows/Linux):"
         & cua-driver status
         $daemonRunning = $LASTEXITCODE -eq 0
@@ -186,8 +202,19 @@ try {
         if ($daemonRunning) {
             Write-Host ""
             Write-Host "Visible applications through daemon:"
-            $appsOutput = (& cua-driver call list_apps 2>&1 | Out-String).Trim()
-            if ($LASTEXITCODE -ne 0) {
+            $appsOutput = ""
+            $listAppsFailed = $false
+            try {
+                $appsOutput = (& cua-driver call list_apps 2>&1 | Out-String).Trim()
+                if ($LASTEXITCODE -ne 0) {
+                    $listAppsFailed = $true
+                }
+            }
+            catch {
+                $appsOutput = $_.Exception.Message.Trim()
+                $listAppsFailed = $true
+            }
+            if ($listAppsFailed) {
                 Write-Host $appsOutput
                 Write-Host "[WARN]    list_apps failed against the running daemon."
                 $cuaGood = $false
@@ -199,6 +226,7 @@ try {
             else {
                 Write-Host $appsOutput
                 Write-Host "[INFO]    Confirm the output includes a GUI application you recognize."
+                Write-Host "[INFO]    Avoid pasting list_apps output with sensitive window titles into shared notes."
             }
         }
         else {
@@ -230,7 +258,7 @@ try {
 
     Write-Host "Core development environment is ready."
     if ($RequireCua) {
-        Write-Host "Cua installation/client checks passed. Verify actual desktop access through the MCP compatibility experiment."
+        Write-Host "Cua install checks passed -- NOT desktop-access clearance. Required next step: verify actual desktop access through the MCP compatibility experiment."
     }
     elseif (-not $cuaGood) {
         Write-Host "Cua Driver readiness is incomplete; use -RequireCua when it becomes mandatory."

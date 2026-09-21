@@ -76,13 +76,13 @@ try {
     }
 
     $manifestPath = "BOOTSTRAP-FILES.txt"
-    if (-not (Test-Path $manifestPath -PathType Leaf)) {
+    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
         throw "Missing $manifestPath."
     }
 
     $bootstrapFiles = @(
-        Get-Content $manifestPath |
-            ForEach-Object { $_.Trim() } |
+        Get-Content -LiteralPath $manifestPath -Encoding UTF8 |
+            ForEach-Object { ([string]$_).TrimStart([char]0xFEFF).Trim() } |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not $_.StartsWith("#") }
     )
 

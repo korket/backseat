@@ -103,6 +103,8 @@ cleanup
 final fix
 ```
 
+Use a component area (`cua: ...`, `docs: ...`, `scripts: ...`); never mirror the branch kind into the subject (`fix: ...`, `wip: ...`). `scripts/commit.ps1` rejects those subjects.
+
 ## Tests travel with behavior
 
 When a commit changes behavior, include the tests for that behavior in the same commit where practical.

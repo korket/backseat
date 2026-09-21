@@ -13,6 +13,10 @@ $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Push-Location $RepoRoot
 
 try {
+    if ($ConfigPath -eq "--auto" -or $OpenCodeArgs -contains "--auto") {
+        throw "OpenCode --auto is not allowed for Backseat development. See AGENTS.md."
+    }
+
     $resolvedConfig = if ([System.IO.Path]::IsPathRooted($ConfigPath)) {
         $ConfigPath
     }
@@ -45,6 +49,16 @@ Then create .backseat-local/opencode.cua.json as described in:
 
     if ($null -eq $localConfig.mcp -or $null -eq $localConfig.mcp.cua) {
         throw "Local override must define mcp.cua."
+    }
+
+    $topLevelKeys = @($localConfig.PSObject.Properties.Name)
+    $unexpectedTopLevel = @($topLevelKeys | Where-Object { $_ -ne 'mcp' })
+    if ($unexpectedTopLevel.Count -gt 0) {
+        throw "Local override must contain only the 'mcp' section. Unexpected top-level key(s): $($unexpectedTopLevel -join ', ')."
+    }
+
+    if ($null -ne $localConfig.permission) {
+        throw "Local override must not define 'permission'. Tracked opencode.json guardrails stay in effect."
     }
 
     if ($localConfig.mcp.cua.enabled -ne $true) {

@@ -44,6 +44,7 @@
       "git branch --show-current": "allow",
       "git restore --staged -- *": "allow",
       "git switch -c *": "allow",
+      "git checkout -b *": "allow",
       "git switch -c *--discard-changes*": "deny",
       "git switch -c *--force*": "deny",
       "pwsh ./scripts/stage.ps1 *": "allow",
@@ -59,7 +60,11 @@
       "dotnet restore *": "allow",
       "dotnet build *": "allow",
       "dotnet test *": "allow",
-      "cua-driver mcp-config --client opencode": "allow"
+      "cua-driver mcp-config --client opencode": "allow",
+      "cua-driver --version": "allow",
+      "cua-driver doctor": "allow",
+      "cua-driver status": "allow",
+      "cua-driver call list_apps": "allow"
     },
     "edit": {
       "*": "allow",
