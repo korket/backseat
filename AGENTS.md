@@ -89,7 +89,8 @@ Treat commits as reviewable patches.
 - Do not call `git add` or `git commit` directly during autonomous work.
 - Stage explicit file paths through `scripts/stage.ps1`.
 - Commit through `scripts/commit.ps1`.
-- Do not amend, rebase, merge, cherry-pick, reset, clean, push, or force-push automatically.
+- Do not amend, rebase, cherry-pick, reset, clean, push, or force-push automatically.
+- Do not merge into `main` unless the human explicitly instructs it.
 
 ### Before each commit
 
@@ -121,7 +122,7 @@ Before declaring a task complete:
 4. report the commits created;
 5. leave the working tree clean.
 
-Do not push or merge into `main`.
+Do not push. Merge into `main` only when the human explicitly instructs it, and never merge unfinished or unverified work.
 
 For the full workflow, read `docs/runbooks/commit-workflow.md`.
 

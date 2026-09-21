@@ -61,11 +61,13 @@ The build agent owns:
 
 The human owns:
 
-- merging into `main`;
+- deciding when work merges into `main`;
 - pushing to remotes;
 - rebasing or otherwise rewriting history;
 - destructive Git operations;
 - publication or release decisions.
+
+A merge into `main` happens only when the human explicitly instructs it. The agent then performs the merge locally; publishing still requires the human.
 
 ## Privileged workflow files
 
@@ -153,6 +155,16 @@ The helper rejects:
 - common generated/runtime output;
 - staged diff errors detected by `git diff --staged --check`.
 
+## Merging
+
+Merge into `main` only when the human explicitly instructs it.
+
+- Merge only completed, verified work; run the full verification first.
+- Prefer `git merge --ff-only` when the branch is linear; it keeps history readable and fails loudly instead of inventing a merge commit.
+- Never rewrite `main` history, force-push, or merge unfinished work.
+- Report the merged commit range after the merge.
+- Do not delete the source branch unless the human asks.
+
 ## During a larger task
 
 Before coding, the agent should identify the intended series.
@@ -184,7 +196,9 @@ Do not intentionally leave all commits until the end.
 
 ## Mistakes and cleanup
 
-Normal build agents are intentionally not granted autonomous rebase, reset, amend, merge, cherry-pick, or push permissions.
+Normal build agents are intentionally not granted autonomous rebase, reset, amend, cherry-pick, or push permissions.
+
+Merging is permitted only on explicit human instruction; it is never an autonomous cleanup step.
 
 If a local mistake is discovered during implementation:
 
