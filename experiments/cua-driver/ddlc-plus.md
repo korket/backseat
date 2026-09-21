@@ -40,7 +40,15 @@ Not tested (no text field reached).
 
 ## Foreground changed
 
-No. No receipt reported a foreground swap. Foreground escalation was NOT exercised (would steal focus; requires explicit human approval).
+No. No background-mode receipt reported a foreground swap.
+
+Foreground escalation was separately approved and exercised once, at the same sidebar point (135, 774) that background delivery ignored:
+
+- Receipt: `delivery.mode=foreground`, `route=global_input`, `effect=unverifiable`.
+- Result: the Settings panel opened, and a re-snapshot captured it. Foreground input reaches this renderer.
+- This also proves the coordinate frame was correct all along: the background clicks landed at the right place and were dropped by the game's input stack, not misrouted.
+- Side effects observed: the game was raised to z=9 and stayed above other windows afterward (z-order is not restored even though the prior foreground is claimed to be). Foreground mode uses real system input, so cursor movement is expected by design. This is intrusive input under the Backseat terminology and must be policy-gated.
+- Caveat: the operator was active at the machine; the timing and exact target match the click, but the operator cannot be 100% excluded.
 
 ## Physical cursor moved
 
@@ -63,4 +71,4 @@ No driver-attributable movement. All receipts report background/synthetic delive
 
 ## Conclusion
 
-Observation of a custom-rendered Unity visual novel works while the window is unfocused and stacked beneath other windows. Background input does not: this engine drops synthetic PostMessage events, and the driver reports `unverifiable` rather than a structured failure. Playable unattended background operation of this VN is NOT demonstrated. The remaining route is foreground escalation (focus steal), which conflicts with Backseat's "alongside the user" goal and needs an explicit policy decision. Recording infrastructure works, but trajectory recording requires a persistent MCP session; the CLI path cannot record a session.
+Observation of a custom-rendered Unity visual novel works while the window is unfocused and stacked beneath other windows. Background input does not: this engine drops synthetic PostMessage events, and the driver reports `unverifiable` rather than a structured failure. Foreground escalation (real system input, brief focus swap) does work on the same target and confirms the coordinate mapping, but it is intrusive input: the user's focus and cursor are involved and the game's z-order is raised. Playable unattended background operation of this VN is NOT demonstrated; foreground-assisted operation works but conflicts with Backseat's "alongside the user" goal and needs an explicit policy decision. Recording infrastructure works, but trajectory recording requires a persistent MCP session; the CLI path cannot record a session.

@@ -43,6 +43,8 @@ Verified on Calculator 6x7=42: all clicks `delivery.mode=background` over the ac
 
 On a custom-rendered Unity VN (DDLC Plus) background pixel clicks reported `unverifiable` and had no effect; the driver did not return `background_unavailable`. Background input is not reliable for custom-rendered targets and must be confirmed by re-observation.
 
+A one-time approved foreground escalation on the same VN target succeeded (`delivery.mode=foreground`, `route=global_input`) and proved the coordinates were correct. Foreground input is intrusive: real system input, brief focus swap, and the target's z-order was raised without being restored.
+
 ### Keyboard behavior
 
 Verified on Notepad: `type_text` via UIA ValuePattern returned `confirmed` with read-back evidence; re-snapshot matched. `press_key` Return landed but its receipt said `unverifiable` with a foreground-escalation hint (false negative on a deferred XAML provider). Lesson: re-snapshot to verify; never auto-escalate on `unverifiable`.
