@@ -16,7 +16,8 @@ public sealed class Session : IAsyncDisposable
         IComputerBackend backend,
         IRunRecorder? recorder = null,
         Guid? id = null,
-        ObservationSettlePolicy? settlePolicy = null)
+        ObservationSettlePolicy? settlePolicy = null,
+        DeliveryPolicy deliveryPolicy = DeliveryPolicy.BackgroundOnly)
     {
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         _recorder = recorder;
@@ -28,6 +29,7 @@ public sealed class Session : IAsyncDisposable
 
         _settlePolicy = settlePolicy ?? ObservationSettlePolicy.Default;
         _settlePolicy.Validate();
+        DeliveryPolicy = deliveryPolicy;
 
         Id = id ?? Guid.NewGuid();
         CreatedAt = DateTimeOffset.UtcNow;
@@ -40,6 +42,8 @@ public sealed class Session : IAsyncDisposable
     public IComputerBackend Backend => _backend;
 
     public IRunRecorder? Recorder => _recorder;
+
+    public DeliveryPolicy DeliveryPolicy { get; }
 
     public SessionState State { get; private set; } = SessionState.Created;
 
@@ -174,6 +178,13 @@ public sealed class Session : IAsyncDisposable
         _actions.Add(record);
         await ActivateAsync(cancellationToken);
         await NotifyAsync(recorder => recorder.OnActionAsync(record, cancellationToken));
+
+        if (receipt.Delivery == ActionDelivery.Foreground && DeliveryPolicy == DeliveryPolicy.BackgroundOnly)
+        {
+            throw new DeliveryPolicyViolationException(
+                receipt,
+                "The backend delivered foreground input while the session policy is BackgroundOnly. The receipt is recorded and returned with this exception.");
+        }
 
         return receipt;
     }

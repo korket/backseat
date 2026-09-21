@@ -355,6 +355,47 @@ public sealed class CuaCliBackendTests
     }
 
     [Fact]
+    public async Task Foreground_Retry_Is_Off_By_Default()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """{"error":"background_unavailable"}""");
+        var backend = new CuaCliBackend(cli);
+
+        var receipt = await backend.ExecuteAsync(Target, new ClickAction(1, 2));
+
+        Assert.Equal(ActionEffect.Failed, receipt.Effect);
+        Assert.Single(cli.Calls);
+    }
+
+    [Fact]
+    public async Task Foreground_Retry_Escalates_Once_When_Enabled()
+    {
+        var cli = new FakeCuaCli()
+            .Enqueue(0, """{"error":"background_unavailable: no UIA peer"}""")
+            .Enqueue(0, """{"delivery":{"mode":"foreground"},"effect":"confirmed","route":"global_input"}""");
+        var backend = new CuaCliBackend(cli, allowForegroundRetry: true);
+
+        var receipt = await backend.ExecuteAsync(Target, new ClickAction(1, 2));
+
+        Assert.Equal(2, cli.Calls.Count);
+        Assert.Equal("background", cli.ParseArguments(0).GetProperty("delivery_mode").GetString());
+        Assert.Equal("foreground", cli.ParseArguments(1).GetProperty("delivery_mode").GetString());
+        Assert.Equal(ActionDelivery.Foreground, receipt.Delivery);
+        Assert.Contains("escalated: background_unavailable", receipt.Warnings);
+    }
+
+    [Fact]
+    public async Task Foreground_Retry_Does_Not_Fire_On_Other_Failures()
+    {
+        var cli = new FakeCuaCli().Enqueue(0, """{"error":"target not found"}""");
+        var backend = new CuaCliBackend(cli, allowForegroundRetry: true);
+
+        var receipt = await backend.ExecuteAsync(Target, new ClickAction(1, 2));
+
+        Assert.Equal(ActionEffect.Failed, receipt.Effect);
+        Assert.Single(cli.Calls);
+    }
+
+    [Fact]
     public void Capabilities_Advertise_What_The_Driver_Provides()
     {
         var backend = new CuaCliBackend(new FakeCuaCli());

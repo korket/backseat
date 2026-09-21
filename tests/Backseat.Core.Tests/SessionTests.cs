@@ -123,9 +123,11 @@ public sealed class SessionTests
         var session = new Session(backend);
         await session.SelectTargetAsync(KnownTarget);
 
-        var receipt = await session.ExecuteAsync(new ClickAction(1, 2));
+        var exception = await Assert.ThrowsAsync<DeliveryPolicyViolationException>(
+            () => session.ExecuteAsync(new ClickAction(1, 2)));
 
-        Assert.False(receipt.ConfirmsBackgroundSafe);
+        Assert.False(exception.Receipt.ConfirmsBackgroundSafe);
+        Assert.Equal(ActionDelivery.Foreground, exception.Receipt.Delivery);
         Assert.Equal(ActionDelivery.Foreground, session.Actions[0].Receipt.Delivery);
     }
 

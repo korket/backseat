@@ -8,10 +8,12 @@ namespace Backseat.Backends.Cua;
 public sealed class CuaCliBackend : IComputerBackend, IRecordingBackend
 {
     private readonly ICuaCli _cli;
+    private readonly bool _allowForegroundRetry;
 
-    public CuaCliBackend(ICuaCli cli)
+    public CuaCliBackend(ICuaCli cli, bool allowForegroundRetry = false)
     {
         _cli = cli ?? throw new ArgumentNullException(nameof(cli));
+        _allowForegroundRetry = allowForegroundRetry;
     }
 
     public string Name => "cua-driver";
@@ -167,6 +169,24 @@ public sealed class CuaCliBackend : IComputerBackend, IRecordingBackend
         arguments["pid"] = target.ProcessId;
         arguments["delivery_mode"] = "background";
 
+        var receipt = await InvokeToolAsync(tool, arguments, cancellationToken);
+
+        if (!_allowForegroundRetry || !IsBackgroundUnavailable(receipt))
+        {
+            return receipt;
+        }
+
+        arguments["delivery_mode"] = "foreground";
+        var escalated = await InvokeToolAsync(tool, arguments, cancellationToken);
+
+        return escalated with
+        {
+            Warnings = escalated.Warnings.Concat(new[] { "escalated: background_unavailable" }).ToList(),
+        };
+    }
+
+    private async Task<ActionReceipt> InvokeToolAsync(string tool, JsonObject arguments, CancellationToken cancellationToken)
+    {
         var stopwatch = Stopwatch.StartNew();
         var result = await _cli.CallAsync(tool, arguments.ToJsonString(), cancellationToken);
         stopwatch.Stop();
@@ -274,6 +294,11 @@ public sealed class CuaCliBackend : IComputerBackend, IRecordingBackend
 
     private static double GetDouble(JsonElement element, string propertyName) =>
         element.TryGetProperty(propertyName, out var value) && value.TryGetDouble(out var number) ? number : 0d;
+
+    private static bool IsBackgroundUnavailable(ActionReceipt receipt) =>
+        receipt.Effect == ActionEffect.Failed
+        && receipt.Error is not null
+        && receipt.Error.Contains("background_unavailable", StringComparison.OrdinalIgnoreCase);
 
     private static async Task<ActionReceipt> WaitAsync(WaitAction wait, CancellationToken cancellationToken)
     {
