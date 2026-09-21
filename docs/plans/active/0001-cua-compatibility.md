@@ -24,7 +24,7 @@ Cua Driver 0.28.2 is installed and working. Tracked `opencode.json` remains Cua-
 
 Compatibility evidence is recorded for Calculator, Notepad, Doki Doki Literature Club Plus, and the OpenCode MCP harness under `experiments/cua-driver/`. The harness works in standard and bounded modes; bounded scope denies out-of-manifest tools and resources with structured errors.
 
-Open items: production wrapper work now proceeds under `docs/plans/active/0002-core-contracts.md` (operator instructed). `docs/decisions/0004-foreground-input-policy.md` is accepted.
+Open items: production wrapper work proceeds under `docs/plans/active/0003-cua-cli-adapter.md` (core contracts completed in `docs/plans/completed/0002-core-contracts.md`). `docs/decisions/0004-foreground-input-policy.md` is accepted.
 
 The DDLC Plus process was left running because no driver path could close it; the human operator closed it manually (the game ignores background close attempts and `kill_app` refuses cross-transport provenance).
 
