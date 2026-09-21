@@ -50,6 +50,7 @@ Result: build clean, 51 tests pass (36 core, 15 adapter).
 
 ## Discoveries
 
+- Milestone proof (see `experiments/cua-driver/milestone-background-action.md`): 6x7=42 on Calculator driven entirely through `Session` + `CuaCliBackend` - four background clicks, verified by re-observation, clean close.
 - Supervised live smoke (read-only plus one local wait): session discovered 12 windows, selected a live window through backend authorization, observed a 620 KB screenshot, executed a local wait receipt (`Confirmed`, route `local`, `ConfirmsBackgroundSafe=False`), and closed cleanly with `CancellationToken` cancelled and both logs populated.
 - Backend disposal uses an optional `IAsyncDisposable` check so the contract stays minimal until a second backend needs an explicit close path.
 - The first observation or action activates the session; no separate activation call is needed for the current lifecycle.
